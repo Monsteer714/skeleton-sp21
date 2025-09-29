@@ -1,6 +1,13 @@
 package deque;
 
-public class ArrayDeque<T> { private int size=0; private int capacity=8; private static int MIN_CAPACITY=8; private int head=0; private int tail=0; private int mid=0; private T[] array;
+public class ArrayDeque<T> {
+    private int size=0;
+    private int capacity=8;
+    private static int MIN_CAPACITY=8;
+    private int head=0;
+    private int tail=0;
+    private int mid=0;
+    private T[] array;
 
     public ArrayDeque() {
         array = (T[]) new Object[capacity];
@@ -18,7 +25,7 @@ public class ArrayDeque<T> { private int size=0; private int capacity=8; private
         return size;
     }
 
-    public void resize(){
+    private void resize(){
         int newCapacity = 0;
         if(head == -1 || tail == capacity){
             newCapacity = capacity * 2;

@@ -1,6 +1,19 @@
 package deque;
 
-public class LinkedListDeque<T> { public class Node { public T data; public Node next; public Node prev; public Node(T _data) { data=_data; next=null; prev=null; } } private int size=0; private Node dummyHead=null; private Node dummyTail=null;
+public class LinkedListDeque<T> {
+    private class Node {
+        public T data;
+        public Node next;
+        public Node prev;
+        public Node(T _data) {
+            data=_data;
+            next=null;
+            prev=null;
+        }
+    }
+    private int size=0;
+    private Node dummyHead=null;
+    private Node dummyTail=null;
 
     public LinkedListDeque() {
         dummyHead=new Node(null);
