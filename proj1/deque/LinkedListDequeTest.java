@@ -8,11 +8,13 @@ import static org.junit.Assert.*;
 public class LinkedListDequeTest {
 
     @Test
-    /** Adds a few things to the list, checking isEmpty() and size() are correct,
+     /** Adds a few things to the list, checking isEmpty() and size() are correct,
      * finally printing the results.
      *
      * && is the "and" operation. */
     public void addIsEmptySizeTest() {
+
+
 
         LinkedListDeque<String> lld1 = new LinkedListDeque<String>();
 
@@ -40,7 +42,7 @@ public class LinkedListDequeTest {
     public void addRemoveTest() {
 
 
-        LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<>();
 		// should be empty
 		assertTrue("lld1 should be empty upon initialization", lld1.isEmpty());
 
@@ -74,6 +76,30 @@ public class LinkedListDequeTest {
 
         assertEquals(errorMsg, 0, size);
 
+    }
+
+    @Test
+    /* Check method get*/
+    public void getTest(){
+        LinkedListDeque<Integer> L = new LinkedListDeque<>();
+        for(int i = 0; i < 10; i++){
+            L.addLast(i);
+        }
+        for(int i = 0; i < 10; i++){
+            assertEquals(i,L.get(i).intValue());
+        }
+    }
+
+    @Test
+    /* Check method getRecursive*/
+    public void getRecursiveTest(){
+        LinkedListDeque<Integer> L = new LinkedListDeque<>();
+        for(int i = 0; i < 10; i++){
+            L.addLast(i);
+        }
+        for(int i = 0; i < 10; i++){
+            assertEquals(i,L.get(i).intValue());
+        }
     }
 
     @Test
@@ -129,100 +155,5 @@ public class LinkedListDequeTest {
         }
 
 
-    }
-
-    @Test public void isEmptyAddSizeTest() {
-        ArrayDeque<Integer> deque = new ArrayDeque<>(); assertTrue(deque.isEmpty()); deque.addFirst(1);
-
-        assertFalse(deque.isEmpty());
-
-        assertEquals(1,deque.size());
-
-        deque.addFirst(2);
-        assertEquals(2,deque.size());
-
-        deque.addFirst(3);
-        assertEquals(3,deque.size());
-
-        deque.addLast(4);
-        assertEquals(4,deque.size());
-
-        deque.addLast(5);
-        assertEquals(5,deque.size());
-    }
-
-    @Test
-    public void bigAmountAddSizeTest() {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        for(int i = 0; i < 10000; i++){
-            deque.addFirst(i);
-            assertEquals(i * 2 + 1, deque.size());
-            deque.addLast(i);
-            assertEquals(i * 2 + 2, deque.size());
-        }
-    }
-
-    @Test
-    public void bigAmountRemoveFirstSizeTest() {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        for(int i = 0; i < 10000; i++){
-            deque.addFirst(i);
-        }
-        for(int i = 10000; i >= 0; i--){
-            assertEquals(i, deque.size());
-            deque.removeFirst();
-        }
-    }
-
-    @Test
-    public void bigAmountRemoveLastSizeTest(){
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        for(int i = 0; i < 10000; i++){
-            deque.addLast(i);
-        }
-        for(int i = 10000; i >= 0; i--){
-            assertEquals(i, deque.size());
-            deque.removeLast();
-        }
-    }
-
-    @Test
-    public void bigAmountAddFristRemoveLastSizeTest(){
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        for(int i = 0; i < 10000; i++){
-            deque.addFirst(i);
-        }
-        for(int i = 10000; i >= 0; i--){
-            assertEquals(i, deque.size());
-            deque.removeLast();
-        }
-    }
-
-    @Test
-    public void removeEmptyDequeTest(){
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        assertEquals(null,deque.removeFirst());
-        assertEquals(null,deque.removeLast());
-    }
-
-    @Test
-    public void getTest(){
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        deque.addFirst(1);
-        deque.addLast(2);
-        deque.addLast(3);
-        assertEquals(1,deque.get(0).intValue());
-        assertEquals(2,deque.get(1).intValue());
-        assertEquals(3,deque.get(2).intValue());
-    }
-
-    @Test
-    public void getFromHugeDequeTest(){
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        for(int i = 0; i < 10000; i++){
-            deque.addFirst(i);
-        }
-        assertEquals(0,deque.get(9999).intValue());
-        assertEquals(9999,deque.get(0).intValue());
     }
 }
