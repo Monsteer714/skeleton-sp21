@@ -1,45 +1,43 @@
 package deque;
 
 public class ArrayDeque<T> implements Deque<T> {
-    private int size=0;
-    private int capacity=8;
-    private static int MIN_CAPACITY=8;
-    private int head=0;
-    private int tail=0;
-    private int mid=0;
+    private int size;
+    private int capacity = 8;
+    private static final int MIN_CAPACITY = 8;
+    private int head;
+    private int tail;
+    private int mid;
     private T[] array;
 
     public ArrayDeque() {
         array = (T[]) new Object[capacity];
-        size=0;
-        mid = capacity/2;
-        head = mid-1;
+        size = 0;
+        mid = capacity / 2;
+        head = mid - 1;
         tail = mid;
     }
-
-    public boolean isEmpty(){
-        return size==0;
+    @Override
+    public boolean isEmpty() {
+        return size == 0;
     }
-
-    public int size(){
+    @Override
+    public int size() {
         return size;
     }
 
-    private void resize(){
-        int newCapacity = 0;
-        if(head == -1 || tail == capacity){
+    private void resize() {
+        int newCapacity;
+        if (head == -1 || tail == capacity) {
             newCapacity = capacity * 2;
-            if (newCapacity< MIN_CAPACITY){
+            if (newCapacity < MIN_CAPACITY) {
                 newCapacity = MIN_CAPACITY;
             }
-        }
-        else if(size < capacity / 5){
+        } else if (size < capacity / 5) {
             newCapacity = capacity / 2;
-            if(newCapacity < MIN_CAPACITY){
+            if (newCapacity < MIN_CAPACITY) {
                 newCapacity = MIN_CAPACITY;
-            };
-        }
-        else{
+            }
+        } else {
             return;
         }
         T[] newArray = (T[]) new Object[newCapacity];
@@ -47,7 +45,7 @@ public class ArrayDeque<T> implements Deque<T> {
 
         int newHead = newMid - (size / 2) - 1;
         int newTail = newHead + size + 1;
-        for(int i = 0;i < size;i++){
+        for (int i = 0; i < size; i++) {
             newArray[newHead + i + 1] = array[head + i + 1];
         }
 
@@ -57,30 +55,30 @@ public class ArrayDeque<T> implements Deque<T> {
         mid = newMid;
         capacity = newCapacity;
     }
-
-    public void addFirst(T item){
+    @Override
+    public void addFirst(T item) {
         resize();
         array[head] = item;
         head -= 1;
         size++;
     }
-
-    public void addLast(T item){
+    @Override
+    public void addLast(T item) {
         resize();
         array[tail] = item;
         tail += 1;
         size++;
     }
-
-    public void printDeque(){
-        for(int i = head + 1;i <= tail - 1;i++){
-            System.out.print(array[i]+" ");
+    @Override
+    public void printDeque() {
+        for (int i = head + 1; i <= tail - 1; i++) {
+            System.out.print(array[i] + " ");
         }
         System.out.println();
     }
-
-    public T removeFirst(){
-        if(isEmpty()){
+    @Override
+    public T removeFirst() {
+        if (isEmpty()) {
             return null;
         }
         T item = array[head + 1];
@@ -89,9 +87,9 @@ public class ArrayDeque<T> implements Deque<T> {
         resize();
         return item;
     }
-
-    public T removeLast(){
-        if(isEmpty()){
+    @Override
+    public T removeLast() {
+        if (isEmpty()) {
             return null;
         }
         T item = array[tail - 1];
@@ -100,11 +98,12 @@ public class ArrayDeque<T> implements Deque<T> {
         resize();
         return item;
     }
-
-    public T get(int index){
-        if(index < 0 || index >= size){
+    @Override
+    public T get(int index) {
+        if (index < 0 || index >= size) {
             return null;
         }
         return array[head + index + 1];
     }
+
 }

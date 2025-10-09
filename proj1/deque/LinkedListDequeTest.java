@@ -1,39 +1,41 @@
 package deque;
 
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 
-/** Performs some basic linked list tests. */
+/**
+ * Performs some basic linked list tests.
+ */
 public class LinkedListDequeTest {
 
     @Test
-     /** Adds a few things to the list, checking isEmpty() and size() are correct,
+    /** Adds a few things to the list, checking isEmpty() and size() are correct,
      * finally printing the results.
      *
      * && is the "and" operation. */
     public void addIsEmptySizeTest() {
 
 
-
         LinkedListDeque<String> lld1 = new LinkedListDeque<String>();
 
-		assertTrue("A newly initialized LLDeque should be empty", lld1.isEmpty());
-		lld1.addFirst("front");
+        assertTrue("A newly initialized LLDeque should be empty", lld1.isEmpty());
+        lld1.addFirst("front");
 
-		// The && operator is the same as "and" in Python.
-		// It's a binary operator that returns true if both arguments true, and false otherwise.
+        // The && operator is the same as "and" in Python.
+        // It's a binary operator that returns true if both arguments true, and false otherwise.
         assertEquals(1, lld1.size());
         assertFalse("lld1 should now contain 1 item", lld1.isEmpty());
 
-		lld1.addLast("middle");
-		assertEquals(2, lld1.size());
+        lld1.addLast("middle");
+        assertEquals(2, lld1.size());
 
-		lld1.addLast("back");
-		assertEquals(3, lld1.size());
+        lld1.addLast("back");
+        assertEquals(3, lld1.size());
 
-		System.out.println("Printing out deque: ");
-		lld1.printDeque();
+        System.out.println("Printing out deque: ");
+        lld1.printDeque();
 
     }
 
@@ -43,16 +45,16 @@ public class LinkedListDequeTest {
 
 
         LinkedListDeque<Integer> lld1 = new LinkedListDeque<>();
-		// should be empty
-		assertTrue("lld1 should be empty upon initialization", lld1.isEmpty());
+        // should be empty
+        assertTrue("lld1 should be empty upon initialization", lld1.isEmpty());
 
-		lld1.addFirst(10);
-		// should not be empty
-		assertFalse("lld1 should contain 1 item", lld1.isEmpty());
+        lld1.addFirst(10);
+        // should not be empty
+        assertFalse("lld1 should contain 1 item", lld1.isEmpty());
 
-		lld1.removeFirst();
-		// should be empty
-		assertTrue("lld1 should be empty after removal", lld1.isEmpty());
+        lld1.removeFirst();
+        // should be empty
+        assertTrue("lld1 should be empty after removal", lld1.isEmpty());
 
     }
 
@@ -80,25 +82,25 @@ public class LinkedListDequeTest {
 
     @Test
     /* Check method get*/
-    public void getTest(){
+    public void getTest() {
         LinkedListDeque<Integer> L = new LinkedListDeque<>();
-        for(int i = 0; i < 10; i++){
+        for (int i = 0; i < 10; i++) {
             L.addLast(i);
         }
-        for(int i = 0; i < 10; i++){
-            assertEquals(i,L.get(i).intValue());
+        for (int i = 0; i < 10; i++) {
+            assertEquals(i, L.get(i).intValue());
         }
     }
 
     @Test
     /* Check method getRecursive*/
-    public void getRecursiveTest(){
+    public void getRecursiveTest() {
         LinkedListDeque<Integer> L = new LinkedListDeque<>();
-        for(int i = 0; i < 10; i++){
+        for (int i = 0; i < 10; i++) {
             L.addLast(i);
         }
-        for(int i = 0; i < 10; i++){
-            assertEquals(i,L.get(i).intValue());
+        for (int i = 0; i < 10; i++) {
+            assertEquals(i, L.get(i).intValue());
         }
     }
 
@@ -107,8 +109,8 @@ public class LinkedListDequeTest {
     public void multipleParamTest() {
 
 
-        LinkedListDeque<String>  lld1 = new LinkedListDeque<String>();
-        LinkedListDeque<Double>  lld2 = new LinkedListDeque<Double>();
+        LinkedListDeque<String> lld1 = new LinkedListDeque<String>();
+        LinkedListDeque<Double> lld2 = new LinkedListDeque<Double>();
         LinkedListDeque<Boolean> lld3 = new LinkedListDeque<Boolean>();
 
         lld1.addFirst("string");

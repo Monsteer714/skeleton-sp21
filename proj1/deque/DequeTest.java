@@ -1,6 +1,7 @@
 package deque;
 
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 public class DequeTest {
@@ -11,34 +12,34 @@ public class DequeTest {
         deque.addFirst(2);
         deque.addFirst(3);
         deque.addFirst(4);
-        assertEquals(4,deque.size());
+        assertEquals(4, deque.size());
     }
 
     @Test
-    public void testLinkedListAddFirst(){
+    public void testLinkedListAddFirst() {
         Deque<Integer> deque = new LinkedListDeque<>();
         deque.addFirst(1);
         deque.addFirst(2);
         deque.addFirst(3);
         deque.addFirst(4);
-        assertEquals(4,deque.size());
+        assertEquals(4, deque.size());
     }
 
     @Test
-    public void testArrayBigAmount(){
+    public void testArrayBigAmount() {
         Deque<Integer> deque = new LinkedListDeque<>();
-        for(int i = 0; i < 1000000; i++){
+        for (int i = 0; i < 1000000; i++) {
             deque.addFirst(i);
-            assertEquals(i+1,deque.size());
+            assertEquals(i + 1, deque.size());
         }
     }
 
     @Test
-    public void testLinkedListBigAmount(){
+    public void testLinkedListBigAmount() {
         Deque<Integer> deque = new LinkedListDeque<>();
-        for(int i = 0; i < 1000000; i++){
+        for (int i = 0; i < 1000000; i++) {
             deque.addFirst(i);
-            assertEquals(i+1,deque.size());
+            assertEquals(i + 1, deque.size());
         }
     }
 }
