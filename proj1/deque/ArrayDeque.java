@@ -1,6 +1,9 @@
 package deque;
 
-public class ArrayDeque<T> implements Deque<T> {
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+public class ArrayDeque<T> implements Deque<T>,Iterable{
     private int size;
     private int capacity = 8;
     private static final int MIN_CAPACITY = 8;
@@ -106,4 +109,31 @@ public class ArrayDeque<T> implements Deque<T> {
         return array[head + index + 1];
     }
 
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayIterator();
+    }
+
+    public class ArrayIterator implements Iterator<T> {
+        private int index;
+
+        public ArrayIterator(){
+            this.index = head + 1;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < tail;
+        }
+
+        @Override
+        public T next() {
+            if(!hasNext()){
+                throw new NoSuchElementException("No more elements in deque");
+            }
+            T item = array[index];
+            index ++;
+            return item;
+        }
+    }
 }
