@@ -1,6 +1,6 @@
 package deque;
 
-public class LinkedListDeque<T> {
+public class LinkedListDeque<T> implements  Deque<T> {
     private class Node {
         public T data;
         public Node next;
@@ -22,15 +22,15 @@ public class LinkedListDeque<T> {
         dummyTail.prev=dummyHead;
         size=0;
     }
-
+    @Override
     public boolean isEmpty() {
         return size==0;
     }
-
+    @Override
     public int size() {
         return size;
     }
-
+    @Override
     public void addFirst(T item){
         Node newNode=new Node(item);
         Node temp=dummyHead.next;
@@ -40,7 +40,7 @@ public class LinkedListDeque<T> {
         temp.prev=newNode;
         this.size++;
     }
-
+    @Override
     public void addLast(T item){
         Node newNode=new Node(item);
         Node temp=dummyTail.prev;
@@ -50,7 +50,7 @@ public class LinkedListDeque<T> {
         temp.next=newNode;
         this.size++;
     }
-
+    @Override
     public T removeFirst(){
         if(isEmpty()){
             return null;
@@ -62,7 +62,7 @@ public class LinkedListDeque<T> {
         this.size--;
         return data;
     }
-
+    @Override
     public T removeLast(){
         if(isEmpty()){
             return null;
@@ -74,7 +74,7 @@ public class LinkedListDeque<T> {
         this.size--;
         return data;
     }
-
+    @Override
     public T get(int index){
         if(index<0 || index>=size){
             return null;
@@ -99,7 +99,7 @@ public class LinkedListDeque<T> {
     public T getRecursive(int index){
         return getRecursiveHelper(dummyHead.next,index);
     }
-
+    @Override
     public void printDeque() {
         Node temp = dummyHead.next;
         while (temp != null) {

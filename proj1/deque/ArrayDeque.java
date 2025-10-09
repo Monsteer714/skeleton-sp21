@@ -1,6 +1,6 @@
 package deque;
 
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Deque<T> {
     private int size=0;
     private int capacity=8;
     private static int MIN_CAPACITY=8;
@@ -45,7 +45,6 @@ public class ArrayDeque<T> {
         T[] newArray = (T[]) new Object[newCapacity];
         int newMid = newCapacity / 2;
 
-        int left_length = (mid - 1) - (head + 1) + 1;
         int newHead = newMid - (size / 2) - 1;
         int newTail = newHead + size + 1;
         for(int i = 0;i < size;i++){
