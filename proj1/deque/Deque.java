@@ -1,6 +1,6 @@
 package deque;
 
-public interface Deque<T> extends Iterable<T> {
+public interface Deque<T> {
     default boolean isEmpty() {
         return this.size() == 0;
     }
@@ -18,4 +18,6 @@ public interface Deque<T> extends Iterable<T> {
     void printDeque();
 
     T get(int index);
+
+    boolean equals(Object o);
 }
