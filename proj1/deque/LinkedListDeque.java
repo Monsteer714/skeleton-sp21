@@ -126,7 +126,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class LinkedListIterator implements Iterator<T> {
         private Node cur;
 
-        public LinkedListIterator() {
+        LinkedListIterator() {
             cur = dummyHead.next;
         }
 
@@ -156,19 +156,15 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
 
-        LinkedListDeque<?> other = (LinkedListDeque<?>) o;
+        ArrayDeque<?> other = (ArrayDeque<?>) o;
 
         if (other.size() != this.size()) {
             return false;
         }
 
-        Iterator<T> thisIterator = this.iterator();
-        Iterator<?> otherIterator = other.iterator();
-
-        while (thisIterator.hasNext() && otherIterator.hasNext()) {
-            T thisItem = thisIterator.next();
-            Object otherItem = otherIterator.next();
-
+        for (int i = 0; i < this.size(); i++) {
+            T thisItem = this.get(i);
+            Object otherItem = other.get(i);
             if (thisItem == null) {
                 if (otherItem != null) {
                     return false;

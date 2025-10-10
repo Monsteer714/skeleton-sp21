@@ -120,7 +120,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private class ArrayIterator implements Iterator<T> {
         private int index;
 
-        public ArrayIterator() {
+        ArrayIterator() {
             this.index = head + 1;
         }
 
@@ -156,13 +156,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
 
-        Iterator<T> thisIterator = this.iterator();
-        Iterator<?> otherIterator = other.iterator();
-
-        while (thisIterator.hasNext() && otherIterator.hasNext()) {
-            T thisItem = thisIterator.next();
-            Object otherItem = otherIterator.next();
-
+        for (int i = 0; i < this.size(); i++) {
+            T thisItem = this.get(i);
+            Object otherItem = other.get(i);
             if (thisItem == null) {
                 if (otherItem != null) {
                     return false;
@@ -173,6 +169,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
                 }
             }
         }
+
         return true;
     }
 }
