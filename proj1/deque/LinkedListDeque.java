@@ -5,12 +5,12 @@ import java.util.NoSuchElementException;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class Node {
-        public T data;
-        public Node next;
-        public Node prev;
+        private T data;
+        private Node next;
+        private Node prev;
 
-        public Node(T _data) {
-            data = _data;
+        Node(T d) {
+            data = d;
             next = null;
             prev = null;
         }
@@ -26,11 +26,6 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         dummyHead.next = dummyTail;
         dummyTail.prev = dummyHead;
         size = 0;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
     }
 
     @Override
@@ -127,8 +122,8 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return new LinkedListIterator();
     }
 
-    public class LinkedListIterator implements Iterator<T> {
-        public Node cur;
+    private class LinkedListIterator implements Iterator<T> {
+        private Node cur;
 
         public LinkedListIterator() {
             cur = dummyHead.next;
@@ -160,7 +155,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
 
-        LinkedListDeque<?> other = (LinkedListDeque<?>) o;
+        Deque<?> other = (Deque<?>) o;
 
         if (other.size() != this.size()) {
             return false;

@@ -1,6 +1,6 @@
 package deque;
 
-public interface Deque<T> {
+public interface Deque<T> extends Iterable<T> {
     default boolean isEmpty() {
         return this.size() == 0;
     }

@@ -44,7 +44,7 @@ public class DequeTest {
     }
 
     @Test
-    public void equalsTest(){
+    public void equalsTest() {
         LinkedListDeque<Integer> test1 = new LinkedListDeque<>();
         LinkedListDeque<Integer> test2 = new LinkedListDeque<>();
         test1.addFirst(1);
@@ -60,10 +60,10 @@ public class DequeTest {
     }
 
     @Test
-    public void bigAmountEqualsTest(){
+    public void bigAmountEqualsTest() {
         LinkedListDeque<Integer> test1 = new LinkedListDeque<>();
         LinkedListDeque<Integer> test2 = new LinkedListDeque<>();
-        for(int i = 0; i < 5000; i++){
+        for (int i = 0; i < 5000; i++) {
             test1.addFirst(i);
             test2.addFirst(i);
         }

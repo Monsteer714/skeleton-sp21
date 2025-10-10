@@ -3,7 +3,7 @@ package deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class ArrayDeque<T> implements Deque<T>, Iterable {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private int size;
     private int capacity = 8;
     private static final int MIN_CAPACITY = 8;
@@ -18,11 +18,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable {
         mid = capacity / 2;
         head = mid - 1;
         tail = mid;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
     }
 
     @Override
@@ -122,7 +117,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable {
         return new ArrayIterator();
     }
 
-    public class ArrayIterator implements Iterator<T> {
+    private class ArrayIterator implements Iterator<T> {
         private int index;
 
         public ArrayIterator() {
@@ -155,7 +150,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable {
             return false;
         }
 
-        ArrayDeque<?> other = (ArrayDeque<?>) o;
+        Deque<?> other = (Deque<?>) o;
 
         if (other.size() != this.size()) {
             return false;
@@ -178,7 +173,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable {
                 }
             }
         }
-
         return true;
     }
 }
