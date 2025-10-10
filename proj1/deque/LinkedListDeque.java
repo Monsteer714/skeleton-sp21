@@ -3,7 +3,7 @@ package deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class LinkedListDeque<T> implements Deque<T>,Iterable<T> {
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class Node {
         public T data;
         public Node next;
@@ -123,14 +123,15 @@ public class LinkedListDeque<T> implements Deque<T>,Iterable<T> {
     }
 
     @Override
-    public Iterator<T> iterator(){
+    public Iterator<T> iterator() {
         return new LinkedListIterator();
     }
 
-    public class LinkedListIterator implements Iterator<T>{
+    public class LinkedListIterator implements Iterator<T> {
         public Node cur;
+
         public LinkedListIterator() {
-            cur =  dummyHead.next;
+            cur = dummyHead.next;
         }
 
         @Override
@@ -140,7 +141,7 @@ public class LinkedListDeque<T> implements Deque<T>,Iterable<T> {
 
         @Override
         public T next() {
-            if(!hasNext()){
+            if (!hasNext()) {
                 throw new NoSuchElementException();
             }
             T result = cur.data;
@@ -149,36 +150,35 @@ public class LinkedListDeque<T> implements Deque<T>,Iterable<T> {
         }
     }
 
-        @Override
-        public boolean equals(Object o){
-        if(this==o){
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
 
-        if(o == null || !(o instanceof Deque)){
+        if (o == null || !(o instanceof Deque)) {
             return false;
         }
 
         LinkedListDeque<?> other = (LinkedListDeque<?>) o;
 
-        if(other.size() != this.size()){
+        if (other.size() != this.size()) {
             return false;
         }
 
         Iterator<T> thisIterator = this.iterator();
         Iterator<?> otherIterator = other.iterator();
 
-        while(thisIterator.hasNext() && otherIterator.hasNext()){
-            T thisItem=thisIterator.next();
-            Object otherItem=otherIterator.next();
+        while (thisIterator.hasNext() && otherIterator.hasNext()) {
+            T thisItem = thisIterator.next();
+            Object otherItem = otherIterator.next();
 
-            if(thisItem == null){
-                if( otherItem != null){
+            if (thisItem == null) {
+                if (otherItem != null) {
                     return false;
                 }
-            }
-            else{
-                if(!thisItem.equals(otherItem)){
+            } else {
+                if (!thisItem.equals(otherItem)) {
                     return false;
                 }
             }

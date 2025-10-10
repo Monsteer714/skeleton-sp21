@@ -83,4 +83,17 @@ public class ArrayDequeTest {
         test1.addFirst(1);
         assertFalse(test1.equals(test2));
     }
+
+    @Test
+    public void notEqualsTest(){
+        ArrayDeque<Integer> test1 = new ArrayDeque<>();
+        ArrayDeque<String> test2 = new ArrayDeque<>();
+        test1.addFirst(1);
+        test1.addFirst(2);
+        test1.addFirst(3);
+        test2.addFirst("1");
+        test2.addFirst("2");
+        test2.addFirst("3");
+        assertFalse(test1.equals(test2));
+    }
 }
