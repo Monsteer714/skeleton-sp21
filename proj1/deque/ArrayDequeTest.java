@@ -54,4 +54,33 @@ public class ArrayDequeTest {
             deque.removeFirst();
         }
     }
+
+    @Test
+    public void equalsTest(){
+        ArrayDeque<Integer> test1 = new ArrayDeque<>();
+        ArrayDeque<Integer> test2 = new ArrayDeque<>();
+        test1.addFirst(1);
+        test1.addFirst(2);
+        test1.addFirst(3);
+        test2.addFirst(1);
+        test2.addFirst(2);
+        test2.addFirst(3);
+        assertTrue(test1.equals(test2));
+
+        test2.addFirst(4);
+        assertFalse(test1.equals(test2));
+    }
+
+    @Test
+    public void bigAmountEqualsTest(){
+        ArrayDeque<Integer> test1 = new ArrayDeque<>();
+        ArrayDeque<Integer> test2 = new ArrayDeque<>();
+        for(int i = 0; i < 5000; i++){
+            test1.addFirst(i);
+            test2.addFirst(i);
+        }
+        assertTrue(test1.equals(test2));
+        test1.addFirst(1);
+        assertFalse(test1.equals(test2));
+    }
 }
