@@ -1,6 +1,8 @@
 package capers;
 
 import java.io.File;
+import java.io.IOException;
+
 import static capers.Utils.*;
 
 /** A repository for Capers 
@@ -18,9 +20,11 @@ public class CapersRepository {
     static final File CWD = new File(System.getProperty("user.dir"));
 
     /** Main metadata folder. */
-    static final File CAPERS_FOLDER = null; // TODO Hint: look at the `join`
-                                            //      function in Utils
+    static final File CAPERS_FOLDER = join(".capers"); // TODO Hint: look at the `join`
+                                                            //      function in Utils
+    static final File DOGS_FOLDER = join(CAPERS_FOLDER, "dogs");
 
+    static final File STORY_FILE = new File(".capers/story.txt");
     /**
      * Does required filesystem operations to allow for persistence.
      * (creates any necessary folders or files)
@@ -31,7 +35,19 @@ public class CapersRepository {
      *    - story -- file containing the current story
      */
     public static void setupPersistence() {
-        // TODO
+        if (!CAPERS_FOLDER.exists()) {
+            CAPERS_FOLDER.mkdirs();
+        }
+        if(!DOGS_FOLDER.exists()) {
+            DOGS_FOLDER.mkdirs();
+        }
+        try {
+            if(!STORY_FILE.exists()){
+                STORY_FILE.createNewFile();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -40,7 +56,10 @@ public class CapersRepository {
      * @param text String of the text to be appended to the story
      */
     public static void writeStory(String text) {
-        // TODO
+        String existingStory = STORY_FILE.exists() ? Utils.readContentsAsString(STORY_FILE) : "";
+        String newStory = existingStory.isEmpty() ? text : existingStory + "\n" + text;
+        Utils.writeContents(STORY_FILE, newStory);
+        System.out.println(newStory);
     }
 
     /**
@@ -49,7 +68,9 @@ public class CapersRepository {
      * Also prints out the dog's information using toString().
      */
     public static void makeDog(String name, String breed, int age) {
-        // TODO
+        Dog newDog = new Dog(name, breed, age);
+        newDog.saveDog();
+        System.out.println(newDog.toString());
     }
 
     /**
@@ -59,6 +80,8 @@ public class CapersRepository {
      * @param name String name of the Dog whose birthday we're celebrating.
      */
     public static void celebrateBirthday(String name) {
-        // TODO
+        Dog thisDog = Dog.fromFile(name);
+        thisDog.haveBirthday();
+        thisDog.saveDog();
     }
 }
