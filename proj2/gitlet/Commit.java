@@ -2,7 +2,12 @@ package gitlet;
 
 // TODO: any imports you need here
 
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Formatter;
+import java.util.*;
+
+import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -10,7 +15,7 @@ import java.util.Date; // TODO: You'll likely use this in this class
  *
  *  @author TODO
  */
-public class Commit {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -18,9 +23,79 @@ public class Commit {
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
      */
-
-    /** The message of this Commit. */
     private String message;
 
-    /* TODO: fill in the rest of this class. */
+    private Date timestamp;
+
+    private String UID;
+
+    /** <SHA1 ID> */
+    private List<String> parents;
+
+    /** <file name,blob id> */
+    private Map<String, String> blobs;
+
+    public Commit() {
+        this.message = "initial commit";
+        this.timestamp = new Date(0);
+        this.UID = sha1(this.message + this.timestamp.toString());
+        this.parents = new ArrayList<>();
+        this.blobs = new HashMap<>();
+    }
+
+    public Commit(String message, List<Commit> parents, Stage stage) {
+        this.message = message;
+        this.timestamp = new Date();
+        this.UID = sha1(this.message + this.timestamp.toString());
+        this.parents = new ArrayList<>();
+        for(Commit parent : parents){
+            this.parents.add(parent.getUID());
+        }
+        this.blobs = new HashMap<>();
+        Map<String, String> added = stage.getAdded();
+        if(parents.size() == 1){
+            Commit head = parents.get(0);
+            Map<String, String> headBlobs = head.getBlobs();
+            this.blobs.putAll(headBlobs);
+            for(Map.Entry<String, String> entry : added.entrySet()){
+                this.blobs.put(entry.getKey(), entry.getValue());
+            }
+        } else if(parents.size() == 2){
+
+        }
+
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public String getFormattedTimestamp() {
+        Date date = this.timestamp;
+        Formatter formatter = new Formatter();
+        formatter.format(Locale.ENGLISH, "%ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
+        String res = formatter.toString();
+        formatter.close();
+        return res;
+    }
+
+    public String getUID() {
+        return UID;
+    }
+
+    public List<String> getParents() {
+        return parents;
+    }
+
+    public Map<String, String> getBlobs() {
+        return blobs;
+    }
+
+    public String getBlob(String fileName) {
+        return blobs.get(fileName);
+    }
 }

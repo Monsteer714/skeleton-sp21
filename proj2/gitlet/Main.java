@@ -9,16 +9,43 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
+        if(args.length < 1){
+            System.out.println("Please enter a command");
+            System.exit(0);
+        }
         String firstArg = args[0];
+        Repository repo = new Repository();
         switch(firstArg) {
             case "init":
-                // TODO: handle the `init` command
+                repo.init();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
+                String fileName = args[1];
+                repo.add(fileName);
                 break;
-            // TODO: FILL THE REST IN
+            case "commit":
+                if(args.length < 2){
+                    System.out.println("Please enter a commit message.");
+                    System.exit(0);
+                }
+                String message = args[1];
+                repo.commit(message);
+                break;
+            case "checkout":
+                if(args.length < 2 || args.length > 4) {
+                    break;
+                } else if(args.length == 2) {
+
+                } else if(args.length == 3) {
+                    repo.checkoutFile(args[2]);
+                } else if(args.length == 4) {
+                    repo.checkoutFile(args[1], args[3]);
+                }
+                break;
+            case "log":
+                repo.log();
+                break;
+
         }
     }
 }
