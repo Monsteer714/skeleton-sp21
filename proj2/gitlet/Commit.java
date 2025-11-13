@@ -53,12 +53,16 @@ public class Commit implements Serializable {
         }
         this.blobs = new HashMap<>();
         Map<String, String> added = stage.getAdded();
+        Set<String> removed = stage.getRemoved();
         if(parents.size() == 1){
             Commit head = parents.get(0);
             Map<String, String> headBlobs = head.getBlobs();
             this.blobs.putAll(headBlobs);
             for(Map.Entry<String, String> entry : added.entrySet()){
                 this.blobs.put(entry.getKey(), entry.getValue());
+            }
+            for(String entry : removed){
+                this.blobs.remove(entry);
             }
         } else if(parents.size() == 2){
 

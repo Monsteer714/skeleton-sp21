@@ -45,7 +45,9 @@ public class Main {
             case "log":
                 repo.log();
                 break;
-
+            case "rm":
+                repo.rm(args[1]);
+                break;
         }
     }
 }

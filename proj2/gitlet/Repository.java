@@ -106,10 +106,16 @@ public class Repository {
             return;
         }
 
-        /** TODO: Staging an already-staged file
-         *  overwrites the previous entry in the
-         *  staging area with the new contents
-         * /
+        /** Unstage the file if it is
+         * currently staged for addition.
+         */
+        Map<String, String> added = stage.getAdded();
+        if(added.containsKey(fileName) &&
+                added.get(fileName) != thisBlob.getBlobID()) {
+            String blobToDeleteId = added.get(fileName);
+            File fileToDelete = new File(STAGING_DIR, blobToDeleteId);
+            fileToDelete.delete();
+        }
 
         /** Add the blob to STAGING_DIR. */
         String blobID = thisBlob.getBlobID();
@@ -117,6 +123,36 @@ public class Repository {
         writeObject(stageBlob, thisBlob);
 
         stage.addFile(fileName, blobID);
+        writeObject(STAGE, stage);
+    }
+
+    /** Remove */
+    public void rm(String fileName) {
+        Commit head = readObject(HEAD, Commit.class);
+        Stage stage = readObject(STAGE, Stage.class);
+        Map<String, String> blobs = head.getBlobs();
+        Map<String, String> added = stage.getAdded();
+        if(!blobs.containsKey(fileName) &&
+        !added.containsKey(fileName)) {
+            System.out.println("File does not exist.");
+            System.exit(0);
+        }
+
+        /** Unstage the file if it is
+         * currently staged for addition.
+         */
+        if(added.containsKey(fileName)) {
+            String blobToDeleteId = added.get(fileName);
+            File fileToDelete = new File(STAGING_DIR, blobToDeleteId);
+            fileToDelete.delete();
+        }
+
+        /** Remove the file in the
+         * working directory.
+         */
+        restrictedDelete(fileName);
+        
+        stage.removeFile(fileName);
         writeObject(STAGE, stage);
     }
 

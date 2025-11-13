@@ -18,11 +18,9 @@ public class Stage implements Serializable  {
         this.removed = new HashSet<>();
     }
 
-    public boolean addFile(String fileName, String blobID) {
-        boolean isAdded = added.containsKey(fileName);
+    public void addFile(String fileName, String blobID) {
         added.put(fileName, blobID);
         removed.remove(fileName);
-        return isAdded;
     }
 
     public void removeFile(String fileName) {
