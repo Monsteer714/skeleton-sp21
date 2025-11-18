@@ -190,12 +190,11 @@ public class Repository {
 
     /** Checkout file with UID and fileName */
     public void checkoutFile(String commitUID, String fileName) {
-        File checkoutCommitFile = join(COMMITS_DIR, commitUID);
-        if(!checkoutCommitFile.exists()) {
+        if(!commitExists(commitUID)) {
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }
-        Commit commit = readObject(checkoutCommitFile, Commit.class);
+        Commit commit = getCommit(commitUID);
         checkoutHelper(commit, fileName);
     }
 
@@ -209,39 +208,8 @@ public class Repository {
             System.out.println("No need to checkout current branch.");
             System.exit(0);
         }
-        Commit currentHeadCommit = getHead();
-        Commit branchHeadCommit = getBranchHead(branchName);
-        Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
-        Map<String, String> branchCommitMap = branchHeadCommit.getBlobs();
-
-        /** Check If a working file is untracked in the
-         *  current branch and would be overwritten
-         *  by the checkout.
-         */
-        List<String> cwdFileNames = plainFilenamesIn(CWD);
-        for(String cwdFileName : cwdFileNames) {
-            if(!currentCommitMap.containsKey(cwdFileName) &&
-            branchCommitMap.containsKey(cwdFileName)) {
-                System.out.println("There is an untracked file in the way;" +
-                        " delete it, or add and commit it first.");
-                System.exit(0);
-            }
-        }
-
-        /** Compares files in current head with the branch head,
-         * takes it if cur don't have and branch have,
-         * overwrites it if cur have and branch have,
-         * deletes it if cur have and branch don't have.
-         */
-        for(String fileName : currentCommitMap.keySet()) {
-            if(!branchCommitMap.containsKey(fileName)) {
-                File checkoutFile = join(CWD, fileName);
-                checkoutFile.delete();
-            }
-        }
-        for(String fileName : branchCommitMap.keySet()) {
-            checkoutHelper(branchHeadCommit, fileName);// both take and overwrite
-        }
+        Commit branchCommit = getBranchHead(branchName);
+        resetHelper(branchCommit);
 
         /** Change the head to the branch with the given branch name. */
         writeObject(HEAD, branchName);
@@ -260,8 +228,7 @@ public class Repository {
             }
             List<String> parents = cur.getParents();
             String parentId = parents.get(0);
-            File parentCommit = join(COMMITS_DIR, parentId);
-            cur = readObject(parentCommit, Commit.class);
+            cur = getCommit(parentId);
         }
     }
 
@@ -269,8 +236,7 @@ public class Repository {
     public void globalLog() {
         List<String> commitsIDs = plainFilenamesIn(COMMITS_DIR);
         for(String commitID : commitsIDs){
-            File commitFile = join(COMMITS_DIR, commitID);
-            Commit thisCommit = readObject(commitFile, Commit.class);
+            Commit thisCommit = getCommit(commitID);
             printLog(thisCommit);
         }
     }
@@ -282,8 +248,7 @@ public class Repository {
         List<String> commitsIDs = plainFilenamesIn(COMMITS_DIR);
         boolean found = false;
         for(String commitID : commitsIDs){
-            File commitFile = join(COMMITS_DIR, commitID);
-            Commit thisCommit = readObject(commitFile, Commit.class);
+            Commit thisCommit = getCommit(commitID);
             if(commitMessage.equals(thisCommit.getMessage())) {
                 found = true;
                 System.out.println(thisCommit.getUID());
@@ -322,11 +287,31 @@ public class Repository {
         branchHeadFile.delete();
     }
 
-    /** Write commit to the system. */
-    public void writeCommitToFile(Commit c) {
-        String UID = c.getUID();
-        File thisCommit = join(COMMITS_DIR, UID);
-        writeObject(thisCommit, c);
+    /** */
+    public void reset(String commitId) {
+        if(!checkBranchExists(commitId)) {
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }
+        Commit c = getCommit(commitId);
+        resetHelper(c);
+        writeCommitToBranch(c);
+        emptyStagingArea();
+    }
+
+    /** Check if the commit with the given id exists. */
+    public boolean commitExists(String commitId) {
+        File commitFile = join(COMMITS_DIR, commitId);
+        if(commitFile.exists()) {
+            return true;
+        }
+        return false;
+    }
+
+    /** Get the commit with the given commit id. */
+    public Commit getCommit(String commitId) {
+        File commitFile = join(COMMITS_DIR, commitId);
+        return readObject(commitFile, Commit.class);
     }
 
     /** Get the head of current branch. */
@@ -340,6 +325,13 @@ public class Repository {
         File branchHeadFile = join(HEADS_DIR, branchName);
         Commit branchHead = readObject(branchHeadFile, Commit.class);
         return branchHead;
+    }
+
+    /** Write commit to the system. */
+    public void writeCommitToFile(Commit c) {
+        String UID = c.getUID();
+        File thisCommit = join(COMMITS_DIR, UID);
+        writeObject(thisCommit, c);
     }
 
     /** Write commit to the current branch head. */
@@ -362,6 +354,41 @@ public class Repository {
         writeContents(cwdFile, checkBlobSerializedContent);
         String checkBlobContent = readObject(cwdFile, String.class);
         writeContents(cwdFile, checkBlobContent);
+    }
+
+    public void resetHelper(Commit c){
+        Commit currentHeadCommit = getHead();
+        Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
+        Map<String, String> branchCommitMap = c.getBlobs();
+
+        /** Check If a working file is untracked in the
+         *  current branch and would be overwritten
+         *  by the checkout.
+         */
+        List<String> cwdFileNames = plainFilenamesIn(CWD);
+        for(String cwdFileName : cwdFileNames) {
+            if(!currentCommitMap.containsKey(cwdFileName) &&
+                    branchCommitMap.containsKey(cwdFileName)) {
+                System.out.println("There is an untracked file in the way;" +
+                        " delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+
+        /** Compares files in current head with the branch head,
+         * takes it if cur don't have and branch have,
+         * overwrites it if cur have and branch have,
+         * deletes it if cur have and branch don't have.
+         */
+        for(String fileName : currentCommitMap.keySet()) {
+            if(!branchCommitMap.containsKey(fileName)) {
+                File checkoutFile = join(CWD, fileName);
+                checkoutFile.delete();
+            }
+        }
+        for(String fileName : branchCommitMap.keySet()) {
+            checkoutHelper(c, fileName);// both take and overwrite
+        }
     }
 
     public void printLog(Commit commit) {

@@ -63,6 +63,9 @@ public class Main {
                 branchName = args[1];
                 repo.rmBranch(branchName);
                 break;
+            case "reset":
+                repo.reset(args[1]);
+                break;
 
         }
     }

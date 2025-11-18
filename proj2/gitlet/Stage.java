@@ -1,21 +1,18 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Stage implements Serializable  {
     /** <file name, blob ID> */
-    private Map<String, String> added = new HashMap<>();
+    private Map<String, String> added = new TreeMap<>();
 
     /** <file name> */
-    private Set<String> removed = new HashSet<>();
+    private Set<String> removed = new TreeSet<>();
 
     public Stage() {
-        this.added = new HashMap<>();
-        this.removed = new HashSet<>();
+        this.added = new TreeMap<>();
+        this.removed = new TreeSet<>();
     }
 
     public void addFile(String fileName, String blobID) {
