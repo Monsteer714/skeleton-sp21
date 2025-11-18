@@ -27,7 +27,7 @@ public class Main {
                 repo.add(fileName);
                 break;
             case "commit":
-                if (args.length < 2) {
+                if (args.length < 2 || args[1] == "") {
                     System.out.println("Please enter a commit message.");
                     System.exit(0);
                 }
@@ -72,7 +72,8 @@ public class Main {
             case "status":
                 repo.status();
                 break;
-
+            default:
+                System.out.println("No command with that name exists.");
         }
     }
 }

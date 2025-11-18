@@ -216,15 +216,12 @@ public class Repository {
             System.out.println("No such branch exists.");
             System.exit(0);
         }
-        
-        Commit branchCommit = getBranchHead(branchName);
-        resetHelper(branchCommit);
-
         if (checkIsCurrentBranch(branchName)) {
             System.out.println("No need to checkout current branch.");
             System.exit(0);
         }
-
+        Commit branchCommit = getBranchHead(branchName);
+        resetHelper(branchCommit);
 
         /** Change the head to the branch with the given branch name. */
         writeObject(HEAD, branchName);
@@ -289,7 +286,6 @@ public class Repository {
             System.exit(0);
         }
         Commit currentCommit = getHead();
-        writeObject(HEAD, branchName);
         writeObject(branchHead, currentCommit);
     }
 
