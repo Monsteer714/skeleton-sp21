@@ -35,7 +35,7 @@ public class Main {
                 if(args.length < 2 || args.length > 4) {
                     break;
                 } else if(args.length == 2) {
-
+                    repo.checkoutBranch(args[1]);
                 } else if(args.length == 3) {
                     repo.checkoutFile(args[2]);
                 } else if(args.length == 4) {
@@ -48,6 +48,22 @@ public class Main {
             case "rm":
                 repo.rm(args[1]);
                 break;
+            case "global-log":
+                repo.globalLog();
+                break;
+            case "find":
+                String commitMessage = args[1];
+                repo.find(commitMessage);
+                break;
+            case "branch":
+                String branchName = args[1];
+                repo.branch(branchName);
+                break;
+            case "rm-branch":
+                branchName = args[1];
+                repo.rmBranch(branchName);
+                break;
+
         }
     }
 }
