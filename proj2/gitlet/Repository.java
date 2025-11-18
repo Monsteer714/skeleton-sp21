@@ -2,9 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -287,7 +285,7 @@ public class Repository {
         branchHeadFile.delete();
     }
 
-    /** */
+    /** Checks out all the files tracked by the given commit. */
     public void reset(String commitId) {
         if(!checkBranchExists(commitId)) {
             System.out.println("No commit with that id exists.");
@@ -297,6 +295,40 @@ public class Repository {
         resetHelper(c);
         writeCommitToBranch(c);
         emptyStagingArea();
+    }
+
+    public void status() {
+        System.out.println("=== Branches ===");
+        List<String> headsNames = plainFilenamesIn(HEADS_DIR);
+        Collections.sort(headsNames);
+        for (String headName : headsNames) {
+            if(checkIsCurrentBranch(headName)) {
+                System.out.print("*");
+            }
+            System.out.println(headName);
+        }
+        System.out.println();
+
+        Stage stage = readObject(STAGE, Stage.class);
+        System.out.println("=== Staged Files ===");
+        Map<String, String> added = stage.getAdded();
+        for (String key : added.keySet()) {
+            System.out.println(key);
+        }
+        System.out.println();
+
+        System.out.println("=== Removed Files ===");
+        Set<String> removed = stage.getRemoved();
+        for (String key : removed) {
+            System.out.println(key);
+        }
+        System.out.println();
+
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println();
+
+        System.out.println("=== Untracked Files ===");
+        System.out.println();
     }
 
     /** Check if the commit with the given id exists. */

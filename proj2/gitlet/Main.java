@@ -66,6 +66,9 @@ public class Main {
             case "reset":
                 repo.reset(args[1]);
                 break;
+            case "status":
+                repo.status();
+                break;
 
         }
     }
