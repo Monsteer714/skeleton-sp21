@@ -209,7 +209,45 @@ public class Repository {
             System.out.println("No need to checkout current branch.");
             System.exit(0);
         }
+        Commit currentHeadCommit = getHead();
+        Commit branchHeadCommit = getBranchHead(branchName);
+        Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
+        Map<String, String> branchCommitMap = branchHeadCommit.getBlobs();
 
+        /** Check If a working file is untracked in the
+         *  current branch and would be overwritten
+         *  by the checkout.
+         */
+        List<String> cwdFileNames = plainFilenamesIn(CWD);
+        for(String cwdFileName : cwdFileNames) {
+            if(!currentCommitMap.containsKey(cwdFileName) &&
+            branchCommitMap.containsKey(cwdFileName)) {
+                System.out.println("There is an untracked file in the way;" +
+                        " delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+
+        /** Compares files in current head with the branch head,
+         * takes it if cur don't have and branch have,
+         * overwrites it if cur have and branch have,
+         * deletes it if cur have and branch don't have.
+         */
+        for(String fileName : currentCommitMap.keySet()) {
+            if(!branchCommitMap.containsKey(fileName)) {
+                File checkoutFile = join(CWD, fileName);
+                checkoutFile.delete();
+            }
+        }
+        for(String fileName : branchCommitMap.keySet()) {
+            checkoutHelper(branchHeadCommit, fileName);// both take and overwrite
+        }
+
+        /** Change the head to the branch with the given branch name. */
+        writeObject(HEAD, branchName);
+
+        /** Clear the staging area. */
+        emptyStagingArea();
     }
 
     /** Print out log */
@@ -238,7 +276,8 @@ public class Repository {
     }
 
     /** Find the commit id(s) by
-     * the given commit message. */
+     * the given commit message.
+     */
     public void find(String commitMessage) {
         List<String> commitsIDs = plainFilenamesIn(COMMITS_DIR);
         boolean found = false;
@@ -263,11 +302,12 @@ public class Repository {
             System.exit(0);
         }
         Commit currentCommit = getHead();
+        writeObject(HEAD, branchName);
         writeObject(branchHead, currentCommit);
     }
 
-    /** Remove the branch pointer with the given
-     * branch name.
+    /** Remove the branch pointer
+     * with the given branch name.
      */
     public void rmBranch(String branchName) {
         if(!checkBranchExists(branchName)) {
@@ -292,6 +332,11 @@ public class Repository {
     /** Get the head of current branch. */
     public Commit getHead() {
         String branchName = readObject(HEAD, String.class);
+        return getBranchHead(branchName);
+    }
+
+    /** Get the head of branch with the given branch name */
+    public Commit getBranchHead(String branchName) {
         File branchHeadFile = join(HEADS_DIR, branchName);
         Commit branchHead = readObject(branchHeadFile, Commit.class);
         return branchHead;
