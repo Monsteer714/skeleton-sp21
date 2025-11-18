@@ -6,13 +6,12 @@ import java.util.*;
 
 import static gitlet.Utils.*;
 
-// TODO: any imports you need here
-
-/** Represents a gitlet repository.
+/**
+ * Represents a gitlet repository.
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ * @author Monsteer714
  */
 public class Repository {
     /**
@@ -39,34 +38,37 @@ public class Repository {
         HEADS_DIR = join(REF_DIR, "heads");
     }
 
-    /** The .gitlet directories
+    /**
+     * The .gitlet directories
      * .gitlet
      * --staging
      * [stage]
      * --blobs
      * --commits
      * --refs
-     *   --heads
-     *     [HEAD]
+     * --heads
+     * [HEAD]
      * [HEAD]
      */
 
-    public File GITLET_DIRS;
+    private File GITLET_DIRS;
 
-    public File STAGING_DIR;
-    public File STAGE;
+    private File STAGING_DIR;
+    private File STAGE;
 
-    public File BLOBS_DIR;
-    public File COMMITS_DIR;
+    private File BLOBS_DIR;
+    private File COMMITS_DIR;
 
-    public File HEAD;
+    private File HEAD;
 
-    public File REF_DIR;
-    public File HEADS_DIR;
+    private File REF_DIR;
+    private File HEADS_DIR;
 
-    /** Initialize the repository */
+    /**
+     * Initialize the repository
+     */
     public void init() {
-        if(GITLET_DIRS.exists() && GITLET_DIRS.isDirectory()) {
+        if (GITLET_DIRS.exists() && GITLET_DIRS.isDirectory()) {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
             System.exit(0);
         }
@@ -85,10 +87,12 @@ public class Repository {
         writeObject(masterHead, initialCommit);
     }
 
-    /** Stage the file with the fileName */
+    /**
+     * Stage the file with the fileName
+     */
     public void add(String fileName) {
         File file = join(CWD, fileName);
-        if(!file.exists()) {
+        if (!file.exists()) {
             System.out.println("File does not exist.");
             System.exit(0);
         }
@@ -102,10 +106,10 @@ public class Repository {
         Stage stage = readObject(STAGE, Stage.class);
         Blob thisBlob = new Blob(file);
         Map<String, String> blobs = head.getBlobs();
-        if(blobs.containsKey(fileName) &&
-                blobs.get(fileName) == thisBlob.getBlobID())  {
+        if (blobs.containsKey(fileName) &&
+                blobs.get(fileName) == thisBlob.getBlobID()) {
             Map<String, String> added = stage.getAdded();
-            if(added.containsKey(fileName)) {
+            if (added.containsKey(fileName)) {
                 added.remove(fileName);
             }
             return;
@@ -115,7 +119,7 @@ public class Repository {
          * currently staged for addition.
          */
         Map<String, String> added = stage.getAdded();
-        if(added.containsKey(fileName) &&
+        if (added.containsKey(fileName) &&
                 added.get(fileName) != thisBlob.getBlobID()) {
             String blobToDeleteId = added.get(fileName);
             File fileToDelete = join(STAGING_DIR, blobToDeleteId);
@@ -131,14 +135,16 @@ public class Repository {
         writeObject(STAGE, stage);
     }
 
-    /** Remove */
+    /**
+     * Remove
+     */
     public void rm(String fileName) {
         Commit head = getHead();
         Stage stage = readObject(STAGE, Stage.class);
         Map<String, String> blobs = head.getBlobs();
         Map<String, String> added = stage.getAdded();
-        if(!blobs.containsKey(fileName) &&
-        !added.containsKey(fileName)) {
+        if (!blobs.containsKey(fileName) &&
+                !added.containsKey(fileName)) {
             System.out.println("File does not exist.");
             System.exit(0);
         }
@@ -146,7 +152,7 @@ public class Repository {
         /** Unstage the file if it is
          * currently staged for addition.
          */
-        if(added.containsKey(fileName)) {
+        if (added.containsKey(fileName)) {
             String blobToDeleteId = added.get(fileName);
             File fileToDelete = join(STAGING_DIR, blobToDeleteId);
             fileToDelete.delete();
@@ -161,13 +167,15 @@ public class Repository {
         writeObject(STAGE, stage);
     }
 
-    /** Commit */
+    /**
+     * Commit
+     */
     public void commit(String message) {
         Commit head = getHead();
         Stage stage = readObject(STAGE, Stage.class);
         if (stage.empty()) {
-           System.out.println("No changes added to the commit.");
-           System.exit(0);
+            System.out.println("No changes added to the commit.");
+            System.exit(0);
         }
         ArrayList<Commit> parents = new ArrayList<>();
         parents.add(head);
@@ -179,16 +187,20 @@ public class Repository {
         emptyStagingArea();
     }
 
-    /** Checkout file with only fileName */
+    /**
+     * Checkout file with only fileName
+     */
     public void checkoutFile(String fileName) {
         Commit head = getHead();
         String commitUID = head.getUID();
         checkoutFile(commitUID, fileName);
     }
 
-    /** Checkout file with UID and fileName */
+    /**
+     * Checkout file with UID and fileName
+     */
     public void checkoutFile(String commitUID, String fileName) {
-        if(!commitExists(commitUID)) {
+        if (!commitExists(commitUID)) {
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }
@@ -196,18 +208,23 @@ public class Repository {
         checkoutHelper(commit, fileName);
     }
 
-    /** Checkout branch with branchName */
+    /**
+     * Checkout branch with branchName
+     */
     public void checkoutBranch(String branchName) {
-        if(!checkBranchExists(branchName)) {
+        if (!checkBranchExists(branchName)) {
             System.out.println("No such branch exists.");
             System.exit(0);
         }
-        if(checkIsCurrentBranch(branchName)) {
+        
+        Commit branchCommit = getBranchHead(branchName);
+        resetHelper(branchCommit);
+
+        if (checkIsCurrentBranch(branchName)) {
             System.out.println("No need to checkout current branch.");
             System.exit(0);
         }
-        Commit branchCommit = getBranchHead(branchName);
-        resetHelper(branchCommit);
+
 
         /** Change the head to the branch with the given branch name. */
         writeObject(HEAD, branchName);
@@ -216,12 +233,14 @@ public class Repository {
         emptyStagingArea();
     }
 
-    /** Print out log */
+    /**
+     * Print out log
+     */
     public void log() {
         Commit cur = getHead();
-        while(true) {
+        while (true) {
             printLog(cur);
-            if(cur.getParents().isEmpty()) {
+            if (cur.getParents().isEmpty()) {
                 break;
             }
             List<String> parents = cur.getParents();
@@ -230,37 +249,42 @@ public class Repository {
         }
     }
 
-    /** Print out global-log. */
+    /**
+     * Print out global-log.
+     */
     public void globalLog() {
         List<String> commitsIDs = plainFilenamesIn(COMMITS_DIR);
-        for(String commitID : commitsIDs){
+        for (String commitID : commitsIDs) {
             Commit thisCommit = getCommit(commitID);
             printLog(thisCommit);
         }
     }
 
-    /** Find the commit id(s) by
+    /**
+     * Find the commit id(s) by
      * the given commit message.
      */
     public void find(String commitMessage) {
         List<String> commitsIDs = plainFilenamesIn(COMMITS_DIR);
         boolean found = false;
-        for(String commitID : commitsIDs){
+        for (String commitID : commitsIDs) {
             Commit thisCommit = getCommit(commitID);
-            if(commitMessage.equals(thisCommit.getMessage())) {
+            if (commitMessage.equals(thisCommit.getMessage())) {
                 found = true;
                 System.out.println(thisCommit.getUID());
             }
         }
-        if(!found) {
+        if (!found) {
             System.out.println("Found no commit with that message.");
         }
     }
 
-    /** Create branch at current head. */
+    /**
+     * Create branch at current head.
+     */
     public void branch(String branchName) {
         File branchHead = join(HEADS_DIR, branchName);
-        if(branchHead.exists()) {
+        if (branchHead.exists()) {
             System.out.println("A branch with that name already exists.");
             System.exit(0);
         }
@@ -269,15 +293,16 @@ public class Repository {
         writeObject(branchHead, currentCommit);
     }
 
-    /** Remove the branch pointer
+    /**
+     * Remove the branch pointer
      * with the given branch name.
      */
     public void rmBranch(String branchName) {
-        if(!checkBranchExists(branchName)) {
+        if (!checkBranchExists(branchName)) {
             System.out.println("A branch with that name does not exist.");
             System.exit(0);
         }
-        if(checkIsCurrentBranch(branchName)) {
+        if (checkIsCurrentBranch(branchName)) {
             System.out.println("Cannot remove the current branch.");
             System.exit(0);
         }
@@ -285,9 +310,11 @@ public class Repository {
         branchHeadFile.delete();
     }
 
-    /** Checks out all the files tracked by the given commit. */
+    /**
+     * Checks out all the files tracked by the given commit.
+     */
     public void reset(String commitId) {
-        if(!checkBranchExists(commitId)) {
+        if (!checkBranchExists(commitId)) {
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }
@@ -302,7 +329,7 @@ public class Repository {
         List<String> headsNames = plainFilenamesIn(HEADS_DIR);
         Collections.sort(headsNames);
         for (String headName : headsNames) {
-            if(checkIsCurrentBranch(headName)) {
+            if (checkIsCurrentBranch(headName)) {
                 System.out.print("*");
             }
             System.out.println(headName);
@@ -331,51 +358,63 @@ public class Repository {
         System.out.println();
     }
 
-    /** Check if the commit with the given id exists. */
+    /**
+     * Check if the commit with the given id exists.
+     */
     public boolean commitExists(String commitId) {
         File commitFile = join(COMMITS_DIR, commitId);
-        if(commitFile.exists()) {
+        if (commitFile.exists()) {
             return true;
         }
         return false;
     }
 
-    /** Get the commit with the given commit id. */
+    /**
+     * Get the commit with the given commit id.
+     */
     public Commit getCommit(String commitId) {
         File commitFile = join(COMMITS_DIR, commitId);
         return readObject(commitFile, Commit.class);
     }
 
-    /** Get the head of current branch. */
+    /**
+     * Get the head of current branch.
+     */
     public Commit getHead() {
         String branchName = readObject(HEAD, String.class);
         return getBranchHead(branchName);
     }
 
-    /** Get the head of branch with the given branch name */
+    /**
+     * Get the head of branch with the given branch name
+     */
     public Commit getBranchHead(String branchName) {
         File branchHeadFile = join(HEADS_DIR, branchName);
         Commit branchHead = readObject(branchHeadFile, Commit.class);
         return branchHead;
     }
 
-    /** Write commit to the system. */
+    /**
+     * Write commit to the system.
+     */
     public void writeCommitToFile(Commit c) {
-        String UID = c.getUID();
-        File thisCommit = join(COMMITS_DIR, UID);
+        String uid = c.getUID();
+        File thisCommit = join(COMMITS_DIR, uid);
         writeObject(thisCommit, c);
     }
 
-    /** Write commit to the current branch head. */
+    /**
+     * Write commit to the current branch head.
+     */
     public void writeCommitToBranch(Commit c) {
         String currentBranchName = readObject(HEAD, String.class);
         File currentBranchHeadFile = join(HEADS_DIR, currentBranchName);
         writeObject(currentBranchHeadFile, c);
     }
 
-    public void checkoutHelper(Commit head, String fileName){
+    public void checkoutHelper(Commit head, String fileName) {
         String blobId = head.getBlob(fileName);
-        if(blobId == null) {
+        if (blobId == null) {
             System.out.println("File does not exist in that commit.");
             System.exit(0);
         }
@@ -388,7 +427,7 @@ public class Repository {
         writeContents(cwdFile, checkBlobContent);
     }
 
-    public void resetHelper(Commit c){
+    public void resetHelper(Commit c) {
         Commit currentHeadCommit = getHead();
         Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
         Map<String, String> branchCommitMap = c.getBlobs();
@@ -398,8 +437,8 @@ public class Repository {
          *  by the checkout.
          */
         List<String> cwdFileNames = plainFilenamesIn(CWD);
-        for(String cwdFileName : cwdFileNames) {
-            if(!currentCommitMap.containsKey(cwdFileName) &&
+        for (String cwdFileName : cwdFileNames) {
+            if (!currentCommitMap.containsKey(cwdFileName) &&
                     branchCommitMap.containsKey(cwdFileName)) {
                 System.out.println("There is an untracked file in the way;" +
                         " delete it, or add and commit it first.");
@@ -412,13 +451,13 @@ public class Repository {
          * overwrites it if cur have and branch have,
          * deletes it if cur have and branch don't have.
          */
-        for(String fileName : currentCommitMap.keySet()) {
-            if(!branchCommitMap.containsKey(fileName)) {
+        for (String fileName : currentCommitMap.keySet()) {
+            if (!branchCommitMap.containsKey(fileName)) {
                 File checkoutFile = join(CWD, fileName);
                 checkoutFile.delete();
             }
         }
-        for(String fileName : branchCommitMap.keySet()) {
+        for (String fileName : branchCommitMap.keySet()) {
             checkoutHelper(c, fileName);// both take and overwrite
         }
     }
@@ -434,56 +473,64 @@ public class Repository {
         System.out.println();
     }
 
-    /** Check if the branch with the given name exist. */
+    /**
+     * Check if the branch with the given name exist.
+     */
     public boolean checkBranchExists(String branchName) {
         File currentBranchHeadFile = join(HEADS_DIR, branchName);
-        if(!currentBranchHeadFile.exists()) {
+        if (!currentBranchHeadFile.exists()) {
             return false;
         }
         return true;
     }
 
-    /** Check if the input branch name is current branch. */
+    /**
+     * Check if the input branch name is current branch.
+     */
     public boolean checkIsCurrentBranch(String branchName) {
         String currentBranchName = readObject(HEAD, String.class);
-        if(currentBranchName.equals(branchName)) {
+        if (currentBranchName.equals(branchName)) {
             return true;
         }
         return false;
     }
 
-    /** Move everything in staging area to BLOB_DIR. */
-    public void moveStagingToBlob(){
+    /**
+     * Move everything in staging area to BLOB_DIR.
+     */
+    public void moveStagingToBlob() {
         List<String> blobIDs = plainFilenamesIn(STAGING_DIR);
         List<File> blobFiles = new ArrayList<>();
 
         if (blobIDs != null) {
-            for(String blobID : blobIDs) {
+            for (String blobID : blobIDs) {
                 File blobFile = join(STAGING_DIR, blobID);
                 blobFiles.add(blobFile);
             }
         }
 
-        for(File blobFile : blobFiles){
+        for (File blobFile : blobFiles) {
             Blob blob = readObject(blobFile, Blob.class);
             File commitBlob = join(BLOBS_DIR, blob.getBlobID());
             writeObject(commitBlob, blob);
         }
     }
 
-    /** Empty the staging area. */
-    public void emptyStagingArea(){
+    /**
+     * Empty the staging area.
+     */
+    public void emptyStagingArea() {
         List<String> blobIDs = plainFilenamesIn(STAGING_DIR);
         List<File> blobFiles = new ArrayList<>();
 
         if (blobIDs != null) {
-            for(String blobID : blobIDs) {
+            for (String blobID : blobIDs) {
                 File blobFile = join(STAGING_DIR, blobID);
                 blobFiles.add(blobFile);
             }
         }
 
-        for(File blobFile : blobFiles){
+        for (File blobFile : blobFiles) {
             blobFile.delete();
         }
         writeObject(STAGE, new Stage());

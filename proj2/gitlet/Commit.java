@@ -1,7 +1,5 @@
 package gitlet;
 
-// TODO: any imports you need here
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
@@ -9,16 +7,14 @@ import java.util.*;
 
 import static gitlet.Utils.*;
 
-/** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
+/**
+ * Represents a gitlet commit object.
  *
- *  @author TODO
+ * @author Monsteer714
  */
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
-     *
+     * <p>
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
@@ -29,10 +25,14 @@ public class Commit implements Serializable {
 
     private String UID;
 
-    /** <SHA1 ID> */
+    /**
+     * <SHA1 ID>
+     */
     private List<String> parents;
 
-    /** <file name,blob id> */
+    /**
+     * <file name,blob id>
+     */
     private Map<String, String> blobs;
 
     public Commit() {
@@ -48,23 +48,23 @@ public class Commit implements Serializable {
         this.timestamp = new Date();
         this.UID = sha1(this.message + this.timestamp.toString());
         this.parents = new ArrayList<>();
-        for(Commit parent : parents){
+        for (Commit parent : parents) {
             this.parents.add(parent.getUID());
         }
         this.blobs = new HashMap<>();
         Map<String, String> added = stage.getAdded();
         Set<String> removed = stage.getRemoved();
-        if(parents.size() == 1){
+        if (parents.size() == 1) {
             Commit head = parents.get(0);
             Map<String, String> headBlobs = head.getBlobs();
             this.blobs.putAll(headBlobs);
-            for(Map.Entry<String, String> entry : added.entrySet()){
+            for (Map.Entry<String, String> entry : added.entrySet()) {
                 this.blobs.put(entry.getKey(), entry.getValue());
             }
-            for(String entry : removed){
+            for (String entry : removed) {
                 this.blobs.remove(entry);
             }
-        } else if(parents.size() == 2){
+        } else if (parents.size() == 2) {
 
         }
 

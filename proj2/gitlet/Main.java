@@ -1,21 +1,24 @@
 package gitlet;
 
-/** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+/**
+ * Driver class for Gitlet, a subset of the Git version-control system.
+ *
+ * @author Monsteer714
  */
 public class Main {
 
-    /** Usage: java gitlet.Main ARGS, where ARGS contains
-     *  <COMMAND> <OPERAND1> <OPERAND2> ... 
+    /**
+     * Usage: java gitlet.Main ARGS, where ARGS contains
+     * <COMMAND> <OPERAND1> <OPERAND2> ...
      */
     public static void main(String[] args) {
-        if(args.length < 1){
+        if (args.length < 1) {
             System.out.println("Please enter a command");
             System.exit(0);
         }
         String firstArg = args[0];
         Repository repo = new Repository();
-        switch(firstArg) {
+        switch (firstArg) {
             case "init":
                 repo.init();
                 break;
@@ -24,7 +27,7 @@ public class Main {
                 repo.add(fileName);
                 break;
             case "commit":
-                if(args.length < 2){
+                if (args.length < 2) {
                     System.out.println("Please enter a commit message.");
                     System.exit(0);
                 }
@@ -32,13 +35,13 @@ public class Main {
                 repo.commit(message);
                 break;
             case "checkout":
-                if(args.length < 2 || args.length > 4) {
+                if (args.length < 2 || args.length > 4) {
                     break;
-                } else if(args.length == 2) {
+                } else if (args.length == 2) {
                     repo.checkoutBranch(args[1]);
-                } else if(args.length == 3) {
+                } else if (args.length == 3) {
                     repo.checkoutFile(args[2]);
-                } else if(args.length == 4) {
+                } else if (args.length == 4) {
                     repo.checkoutFile(args[1], args[3]);
                 }
                 break;

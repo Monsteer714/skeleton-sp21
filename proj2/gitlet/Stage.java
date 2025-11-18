@@ -3,11 +3,15 @@ package gitlet;
 import java.io.Serializable;
 import java.util.*;
 
-public class Stage implements Serializable  {
-    /** <file name, blob ID> */
+public class Stage implements Serializable {
+    /**
+     * <file name, blob ID>
+     */
     private Map<String, String> added = new TreeMap<>();
 
-    /** <file name> */
+    /**
+     * <file name>
+     */
     private Set<String> removed = new TreeSet<>();
 
     public Stage() {
@@ -25,15 +29,15 @@ public class Stage implements Serializable  {
         added.remove(fileName);
     }
 
-    public Map<String, String> getAdded(){
+    public Map<String, String> getAdded() {
         return added;
     }
 
-    public Set<String> getRemoved(){
+    public Set<String> getRemoved() {
         return removed;
     }
 
-    public boolean empty(){
+    public boolean empty() {
         return added.isEmpty() && removed.isEmpty();
     }
 }
