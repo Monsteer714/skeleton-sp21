@@ -310,7 +310,7 @@ public class Repository {
      * Checks out all the files tracked by the given commit.
      */
     public void reset(String commitId) {
-        if (!checkBranchExists(commitId)) {
+        if (!commitExists(commitId)) {
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }
@@ -321,6 +321,10 @@ public class Repository {
     }
 
     public void status() {
+        if(!GITLET_DIRS.exists()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            System.exit(0);
+        }
         System.out.println("=== Branches ===");
         List<String> headsNames = plainFilenamesIn(HEADS_DIR);
         Collections.sort(headsNames);
@@ -459,11 +463,11 @@ public class Repository {
     }
 
     public void printLog(Commit commit) {
-        String UID = commit.getUID();
+        String uid = commit.getUID();
         String timestamp = commit.getFormattedTimestamp();
         String message = commit.getMessage();
         System.out.println("===");
-        System.out.println("commit " + UID);
+        System.out.println("commit " + uid);
         System.out.println("Date: " + timestamp);
         System.out.println(message);
         System.out.println();

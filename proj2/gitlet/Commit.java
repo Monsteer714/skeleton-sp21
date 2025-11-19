@@ -81,7 +81,8 @@ public class Commit implements Serializable {
     public String getFormattedTimestamp() {
         Date date = this.timestamp;
         Formatter formatter = new Formatter();
-        formatter.format(Locale.ENGLISH, "%ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
+        formatter.format(Locale.ENGLISH, "%ta %tb %td %tT %tY %tz",
+                date, date, date, date, date, date);
         String res = formatter.toString();
         formatter.close();
         return res;
