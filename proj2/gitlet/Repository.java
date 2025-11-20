@@ -106,32 +106,37 @@ public class Repository {
         Stage stage = readObject(STAGE, Stage.class);
         Blob thisBlob = new Blob(file);
         Map<String, String> blobs = head.getBlobs();
+        Map<String, String> added = stage.getAdded();
+        Set<String> removed = stage.getRemoved();
         if (blobs.containsKey(fileName) &&
-                blobs.get(fileName) == thisBlob.getBlobID()) {
-            Map<String, String> added = stage.getAdded();
-            if (added.containsKey(fileName)) {
+                blobs.get(fileName).equals(thisBlob.getBlobId())) {
+            if(added.containsKey(fileName)) {
+                String blobToDeleteId = added.get(fileName);
+                File fileToDelete = join(STAGING_DIR, blobToDeleteId);
+                fileToDelete.delete();
                 added.remove(fileName);
             }
-            return;
+            removed.remove(fileName);
+            writeObject(STAGE, stage);
+            System.exit(0);
         }
 
-        /** Unstage the file if it is
+        /** Overwrites the file if it is
          * currently staged for addition.
          */
-        Map<String, String> added = stage.getAdded();
         if (added.containsKey(fileName) &&
-                added.get(fileName) != thisBlob.getBlobID()) {
+                !added.get(fileName).equals(thisBlob.getBlobId())) {
             String blobToDeleteId = added.get(fileName);
             File fileToDelete = join(STAGING_DIR, blobToDeleteId);
             fileToDelete.delete();
         }
 
         /** Add the blob to STAGING_DIR. */
-        String blobID = thisBlob.getBlobID();
-        File stageBlob = join(STAGING_DIR, blobID);
+        String blobId = thisBlob.getBlobId();
+        File stageBlob = join(STAGING_DIR, blobId);
         writeObject(stageBlob, thisBlob);
 
-        stage.addFile(fileName, blobID);
+        stage.addFile(fileName, blobId);
         writeObject(STAGE, stage);
     }
 
@@ -143,27 +148,33 @@ public class Repository {
         Stage stage = readObject(STAGE, Stage.class);
         Map<String, String> blobs = head.getBlobs();
         Map<String, String> added = stage.getAdded();
+
+        /** The file is neither staged for addition
+         * nor tracked by current commit.
+         */
         if (!blobs.containsKey(fileName) &&
                 !added.containsKey(fileName)) {
-            System.out.println("File does not exist.");
+            System.out.println("No reason to remove the file.");
             System.exit(0);
         }
 
-        /** Unstage the file if it is
-         * currently staged for addition.
-         */
+        /** Remove the file from addition. */
         if (added.containsKey(fileName)) {
             String blobToDeleteId = added.get(fileName);
+            added.remove(fileName);
             File fileToDelete = join(STAGING_DIR, blobToDeleteId);
             fileToDelete.delete();
         }
 
-        /** Remove the file in the
-         * working directory.
-         */
-        restrictedDelete(fileName);
+        /** Delete the file from working directory and
+         * stage it to removal if it is tracked by
+         * current commit.
+         * */
+        if (blobs.containsKey(fileName)) {
+            restrictedDelete(fileName);
+            stage.removeFile(fileName);
+        }
 
-        stage.removeFile(fileName);
         writeObject(STAGE, stage);
     }
 
@@ -192,19 +203,19 @@ public class Repository {
      */
     public void checkoutFile(String fileName) {
         Commit head = getHead();
-        String commitUID = head.getUID();
-        checkoutFile(commitUID, fileName);
+        String commitId = head.getId();
+        checkoutFile(commitId, fileName);
     }
 
     /**
-     * Checkout file with UID and fileName
+     * Checkout file with Id and fileName
      */
-    public void checkoutFile(String commitUID, String fileName) {
-        if (!commitExists(commitUID)) {
+    public void checkoutFile(String commitId, String fileName) {
+        if (!commitExists(commitId)) {
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }
-        Commit commit = getCommit(commitUID);
+        Commit commit = getCommit(commitId);
         checkoutHelper(commit, fileName);
     }
 
@@ -217,7 +228,7 @@ public class Repository {
             System.exit(0);
         }
         if (checkIsCurrentBranch(branchName)) {
-            System.out.println("No need to checkout current branch.");
+            System.out.println("No need to checkout the current branch.");
             System.exit(0);
         }
         Commit branchCommit = getBranchHead(branchName);
@@ -250,9 +261,9 @@ public class Repository {
      * Print out global-log.
      */
     public void globalLog() {
-        List<String> commitsIDs = plainFilenamesIn(COMMITS_DIR);
-        for (String commitID : commitsIDs) {
-            Commit thisCommit = getCommit(commitID);
+        List<String> commitsIds = plainFilenamesIn(COMMITS_DIR);
+        for (String commitId : commitsIds) {
+            Commit thisCommit = getCommit(commitId);
             printLog(thisCommit);
         }
     }
@@ -262,13 +273,13 @@ public class Repository {
      * the given commit message.
      */
     public void find(String commitMessage) {
-        List<String> commitsIDs = plainFilenamesIn(COMMITS_DIR);
+        List<String> commitsIds = plainFilenamesIn(COMMITS_DIR);
         boolean found = false;
-        for (String commitID : commitsIDs) {
-            Commit thisCommit = getCommit(commitID);
+        for (String commitId : commitsIds) {
+            Commit thisCommit = getCommit(commitId);
             if (commitMessage.equals(thisCommit.getMessage())) {
                 found = true;
-                System.out.println(thisCommit.getUID());
+                System.out.println(thisCommit.getId());
             }
         }
         if (!found) {
@@ -321,7 +332,7 @@ public class Repository {
     }
 
     public void status() {
-        if(!GITLET_DIRS.exists()) {
+        if (!GITLET_DIRS.exists()) {
             System.out.println("Not in an initialized Gitlet directory.");
             System.exit(0);
         }
@@ -398,7 +409,7 @@ public class Repository {
      * Write commit to the system.
      */
     public void writeCommitToFile(Commit c) {
-        String uid = c.getUID();
+        String uid = c.getId();
         File thisCommit = join(COMMITS_DIR, uid);
         writeObject(thisCommit, c);
     }
@@ -463,7 +474,7 @@ public class Repository {
     }
 
     public void printLog(Commit commit) {
-        String uid = commit.getUID();
+        String uid = commit.getId();
         String timestamp = commit.getFormattedTimestamp();
         String message = commit.getMessage();
         System.out.println("===");
@@ -499,19 +510,19 @@ public class Repository {
      * Move everything in staging area to BLOB_DIR.
      */
     public void moveStagingToBlob() {
-        List<String> blobIDs = plainFilenamesIn(STAGING_DIR);
+        List<String> blobIds = plainFilenamesIn(STAGING_DIR);
         List<File> blobFiles = new ArrayList<>();
 
-        if (blobIDs != null) {
-            for (String blobID : blobIDs) {
-                File blobFile = join(STAGING_DIR, blobID);
+        if (blobIds != null) {
+            for (String blobId : blobIds) {
+                File blobFile = join(STAGING_DIR, blobId);
                 blobFiles.add(blobFile);
             }
         }
 
         for (File blobFile : blobFiles) {
             Blob blob = readObject(blobFile, Blob.class);
-            File commitBlob = join(BLOBS_DIR, blob.getBlobID());
+            File commitBlob = join(BLOBS_DIR, blob.getBlobId());
             writeObject(commitBlob, blob);
         }
     }
@@ -520,12 +531,12 @@ public class Repository {
      * Empty the staging area.
      */
     public void emptyStagingArea() {
-        List<String> blobIDs = plainFilenamesIn(STAGING_DIR);
+        List<String> blobIds = plainFilenamesIn(STAGING_DIR);
         List<File> blobFiles = new ArrayList<>();
 
-        if (blobIDs != null) {
-            for (String blobID : blobIDs) {
-                File blobFile = join(STAGING_DIR, blobID);
+        if (blobIds != null) {
+            for (String blobId : blobIds) {
+                File blobFile = join(STAGING_DIR, blobId);
                 blobFiles.add(blobFile);
             }
         }

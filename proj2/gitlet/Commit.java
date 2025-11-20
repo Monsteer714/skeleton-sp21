@@ -23,7 +23,7 @@ public class Commit implements Serializable {
 
     private Date timestamp;
 
-    private String UID;
+    private String Id;
 
     /**
      * <SHA1 ID>
@@ -38,7 +38,7 @@ public class Commit implements Serializable {
     public Commit() {
         this.message = "initial commit";
         this.timestamp = new Date(0);
-        this.UID = sha1(this.message + this.timestamp.toString());
+        this.Id = sha1(this.message + this.timestamp.toString());
         this.parents = new ArrayList<>();
         this.blobs = new HashMap<>();
     }
@@ -46,10 +46,10 @@ public class Commit implements Serializable {
     public Commit(String message, List<Commit> parents, Stage stage) {
         this.message = message;
         this.timestamp = new Date();
-        this.UID = sha1(this.message + this.timestamp.toString());
+        this.Id = sha1(this.message + this.timestamp.toString());
         this.parents = new ArrayList<>();
         for (Commit parent : parents) {
-            this.parents.add(parent.getUID());
+            this.parents.add(parent.getId());
         }
         this.blobs = new HashMap<>();
         Map<String, String> added = stage.getAdded();
@@ -88,8 +88,8 @@ public class Commit implements Serializable {
         return res;
     }
 
-    public String getUID() {
-        return UID;
+    public String getId() {
+        return Id;
     }
 
     public List<String> getParents() {

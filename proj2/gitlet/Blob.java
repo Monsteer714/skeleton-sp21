@@ -10,7 +10,7 @@ public class Blob implements Serializable {
 
     private byte[] content;
 
-    private String blobID;
+    private String blobId;
 
     public Blob(String fileName) {
         this.fileName = fileName;
@@ -20,7 +20,7 @@ public class Blob implements Serializable {
         this.fileName = file.getName();
         String fileContent = readContentsAsString(file);
         this.content = serialize(fileContent);
-        this.blobID = sha1(fileName + fileContent);
+        this.blobId = sha1(fileName + fileContent);
     }
 
     public String getFileName() {
@@ -31,7 +31,7 @@ public class Blob implements Serializable {
         return content;
     }
 
-    public String getBlobID() {
-        return blobID;
+    public String getBlobId() {
+        return blobId;
     }
 }
