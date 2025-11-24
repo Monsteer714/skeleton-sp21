@@ -20,7 +20,7 @@ public class Repository {
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided two examples for you.
      */
-    public File CWD;
+    private File CWD;
 
     Repository() {
         this.CWD = new File(System.getProperty("user.dir"));
@@ -110,7 +110,7 @@ public class Repository {
         Set<String> removed = stage.getRemoved();
         if (blobs.containsKey(fileName) &&
                 blobs.get(fileName).equals(thisBlob.getBlobId())) {
-            if(added.containsKey(fileName)) {
+            if (added.containsKey(fileName)) {
                 String blobToDeleteId = added.get(fileName);
                 File fileToDelete = join(STAGING_DIR, blobToDeleteId);
                 fileToDelete.delete();
@@ -211,7 +211,7 @@ public class Repository {
      * Checkout file with Id and fileName
      */
     public void checkoutFile(String commitId, String fileName) {
-        if (!commitExists(commitId)) {
+        if (!checkCommitExists(commitId)) {
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }
@@ -321,7 +321,7 @@ public class Repository {
      * Checks out all the files tracked by the given commit.
      */
     public void reset(String commitId) {
-        if (!commitExists(commitId)) {
+        if (!checkCommitExists(commitId)) {
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }
@@ -369,10 +369,33 @@ public class Repository {
         System.out.println();
     }
 
+    public void merge(String branchName) {
+        Stage stage = readObject(STAGE, Stage.class);
+        Commit branchCommit = getBranchHead(branchName);
+        if (!stage.empty()) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+        if (!checkBranchExists(branchName)) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        if (checkIsCurrentBranch(branchName)) {
+            System.out.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
+        if (checkUntrackedFiles(branchCommit)) {
+            System.out.println("There is an untracked file in the way;" +
+                    " delete it, or add and commit it first.");
+            System.exit(0);
+        }
+
+    }
+
     /**
      * Check if the commit with the given id exists.
      */
-    public boolean commitExists(String commitId) {
+    public boolean checkCommitExists(String commitId) {
         File commitFile = join(COMMITS_DIR, commitId);
         if (commitFile.exists()) {
             return true;
@@ -443,18 +466,10 @@ public class Repository {
         Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
         Map<String, String> branchCommitMap = c.getBlobs();
 
-        /** Check If a working file is untracked in the
-         *  current branch and would be overwritten
-         *  by the checkout.
-         */
-        List<String> cwdFileNames = plainFilenamesIn(CWD);
-        for (String cwdFileName : cwdFileNames) {
-            if (!currentCommitMap.containsKey(cwdFileName) &&
-                    branchCommitMap.containsKey(cwdFileName)) {
-                System.out.println("There is an untracked file in the way;" +
-                        " delete it, or add and commit it first.");
-                System.exit(0);
-            }
+        if (checkUntrackedFiles(c)) {
+            System.out.println("There is an untracked file in the way;" +
+                    " delete it, or add and commit it first.");
+            System.exit(0);
         }
 
         /** Compares files in current head with the branch head,
@@ -546,4 +561,24 @@ public class Repository {
         }
         writeObject(STAGE, new Stage());
     }
+
+    /** Check If a working file is untracked in the
+     *  current branch and would be overwritten
+     *  by the checkout.
+     */
+    public boolean checkUntrackedFiles(Commit commit) {
+        Commit currentHeadCommit = getHead();
+        Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
+        Map<String, String> branchCommitMap = commit.getBlobs();
+
+        List<String> cwdFileNames = plainFilenamesIn(CWD);
+        for (String cwdFileName : cwdFileNames) {
+            if (!currentCommitMap.containsKey(cwdFileName) &&
+                    branchCommitMap.containsKey(cwdFileName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
