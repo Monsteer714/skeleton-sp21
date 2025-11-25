@@ -492,71 +492,72 @@ public class Repository {
 
         boolean conflictExists = false;
 
-        /**
-         * Exist in split point commit,
-         * modified in current commit,
-         * and modified in given branch commit in different ways,
-         * conflict.
-         */
-        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            String currentBlobId = currentBlobs.get(key);
-            String branchBlobId = branchBlobs.get(key);
-            if (!value.equals(currentBlobId)
-                    && !value.equals(branchBlobId)
-                    && !currentBlobId.equals(branchBlobId)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
+      ///**
+      // * Exist in split point commit,
+      // * modified in current commit,
+      // * and modified in given branch commit in different ways,
+      // * conflict.
+      // */
+      //
+      //for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
+      //    String key = entry.getKey();
+      //    String value = entry.getValue();
+      //    String currentBlobId = currentBlobs.get(key);
+      //    String branchBlobId = branchBlobs.get(key);
+      //    if (!value.equals(currentBlobId)
+      //            && !value.equals(branchBlobId)
+      //            && !currentBlobId.equals(branchBlobId)) {
+      //        conflictExists = true;
+      //        conflictHelper(currentCommit, branchCommit, key);
+      //    }
+      //}
 
-        /**
-         * Exist in split point commit,
-         * modified in one commit,
-         * and deleted in another commit,
-         * conflict.
-         */
-        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!branchBlobs.containsKey(key)
-                    && !currentBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-            else if (!currentBlobs.containsKey(key)
-                    && !branchBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
+      ///**
+      // * Exist in split point commit,
+      // * modified in one commit,
+      // * and deleted in another commit,
+      // * conflict.
+      // */
+      //for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
+      //    String key = entry.getKey();
+      //    String value = entry.getValue();
+      //    if (!branchBlobs.containsKey(key)
+      //            && !currentBlobs.get(key).equals(value)) {
+      //        conflictExists = true;
+      //        conflictHelper(currentCommit, branchCommit, key);
+      //    }
+      //    else if (!currentBlobs.containsKey(key)
+      //            && !branchBlobs.get(key).equals(value)) {
+      //        conflictExists = true;
+      //        conflictHelper(currentCommit, branchCommit, key);
+      //    }
+      //}
 
-        /**
-         * Not exist in split point commit,
-         * modified in current commit,
-         * and modified in given branch commit in different ways,
-         * conflict.
-         */
-        for (Map.Entry<String, String> entry : currentBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!splitPointBlobs.containsKey(key)
-                    && !branchBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
+      ///**
+      // * Not exist in split point commit,
+      // * modified in current commit,
+      // * and modified in given branch commit in different ways,
+      // * conflict.
+      // */
+      //for (Map.Entry<String, String> entry : currentBlobs.entrySet()) {
+      //    String key = entry.getKey();
+      //    String value = entry.getValue();
+      //    if (!splitPointBlobs.containsKey(key)
+      //            && !branchBlobs.get(key).equals(value)) {
+      //        conflictExists = true;
+      //        conflictHelper(currentCommit, branchCommit, key);
+      //    }
+      //}
 
-        for (Map.Entry<String, String> entry : branchBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!splitPointBlobs.containsKey(key)
-                    && !currentBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
+      //for (Map.Entry<String, String> entry : branchBlobs.entrySet()) {
+      //    String key = entry.getKey();
+      //    String value = entry.getValue();
+      //    if (!splitPointBlobs.containsKey(key)
+      //            && !currentBlobs.get(key).equals(value)) {
+      //        conflictExists = true;
+      //        conflictHelper(currentCommit, branchCommit, key);
+      //    }
+      //}
 
         if (stage.empty()) {
             System.out.println("No changes added to the commit.");
