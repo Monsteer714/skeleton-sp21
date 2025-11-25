@@ -23,7 +23,7 @@ public class Commit implements Serializable {
 
     private Date timestamp;
 
-    private String Id;
+    private String id;
 
     /**
      * <SHA1 ID>
@@ -38,7 +38,7 @@ public class Commit implements Serializable {
     public Commit() {
         this.message = "initial commit";
         this.timestamp = new Date(0);
-        this.Id = sha1(this.message + this.timestamp.toString());
+        this.id = sha1(this.message + this.timestamp.toString());
         this.parents = new ArrayList<>();
         this.blobs = new HashMap<>();
     }
@@ -46,7 +46,7 @@ public class Commit implements Serializable {
     public Commit(String message, List<Commit> parents, Stage stage) {
         this.message = message;
         this.timestamp = new Date();
-        this.Id = sha1(this.message + this.timestamp.toString());
+        this.id = sha1(this.message + this.timestamp.toString());
         this.parents = new ArrayList<>();
         for (Commit parent : parents) {
             this.parents.add(parent.getId());
@@ -54,20 +54,15 @@ public class Commit implements Serializable {
         this.blobs = new HashMap<>();
         Map<String, String> added = stage.getAdded();
         Set<String> removed = stage.getRemoved();
-        if (parents.size() == 1) {
-            Commit head = parents.get(0);
-            Map<String, String> headBlobs = head.getBlobs();
-            this.blobs.putAll(headBlobs);
-            for (Map.Entry<String, String> entry : added.entrySet()) {
-                this.blobs.put(entry.getKey(), entry.getValue());
-            }
-            for (String entry : removed) {
-                this.blobs.remove(entry);
-            }
-        } else if (parents.size() == 2) {
-
+       for (int i = parents.size() - 1; i >= 0; i--) {
+            Commit parentHead = parents.get(i);
+            Map<String, String> parentBlobs = parentHead.getBlobs();
+            this.blobs.putAll(parentBlobs);
         }
-
+        this.blobs.putAll(added);
+        for (String entry : removed) {
+            this.blobs.remove(entry);
+        }
     }
 
     public String getMessage() {
@@ -89,7 +84,7 @@ public class Commit implements Serializable {
     }
 
     public String getId() {
-        return Id;
+        return id;
     }
 
     public List<String> getParents() {
@@ -102,5 +97,15 @@ public class Commit implements Serializable {
 
     public String getBlob(String fileName) {
         return blobs.get(fileName);
+    }
+
+    public void removeBlob(String fileName) {
+        blobs.remove(fileName);
+    }
+
+    public void addBlob(Blob blob) {
+        String fileName = blob.getFileName();
+        String blobId = blob.getBlobId();
+        blobs.put(fileName, blobId);
     }
 }

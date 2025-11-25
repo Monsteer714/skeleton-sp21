@@ -1,15 +1,12 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static gitlet.Utils.*;
 
 /**
  * Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
  *
  * @author Monsteer714
  */
@@ -69,7 +66,8 @@ public class Repository {
      */
     public void init() {
         if (GITLET_DIRS.exists() && GITLET_DIRS.isDirectory()) {
-            System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.out.println("A Gitlet version-control system "
+                    + "already exists in the current directory.");
             System.exit(0);
         }
         GITLET_DIRS.mkdirs();
@@ -108,8 +106,8 @@ public class Repository {
         Map<String, String> blobs = head.getBlobs();
         Map<String, String> added = stage.getAdded();
         Set<String> removed = stage.getRemoved();
-        if (blobs.containsKey(fileName) &&
-                blobs.get(fileName).equals(thisBlob.getBlobId())) {
+        if (blobs.containsKey(fileName)
+                && blobs.get(fileName).equals(thisBlob.getBlobId())) {
             if (added.containsKey(fileName)) {
                 String blobToDeleteId = added.get(fileName);
                 File fileToDelete = join(STAGING_DIR, blobToDeleteId);
@@ -124,8 +122,8 @@ public class Repository {
         /** Overwrites the file if it is
          * currently staged for addition.
          */
-        if (added.containsKey(fileName) &&
-                !added.get(fileName).equals(thisBlob.getBlobId())) {
+        if (added.containsKey(fileName)
+                && !added.get(fileName).equals(thisBlob.getBlobId())) {
             String blobToDeleteId = added.get(fileName);
             File fileToDelete = join(STAGING_DIR, blobToDeleteId);
             fileToDelete.delete();
@@ -152,8 +150,8 @@ public class Repository {
         /** The file is neither staged for addition
          * nor tracked by current commit.
          */
-        if (!blobs.containsKey(fileName) &&
-                !added.containsKey(fileName)) {
+        if (!blobs.containsKey(fileName)
+                && !added.containsKey(fileName)) {
             System.out.println("No reason to remove the file.");
             System.exit(0);
         }
@@ -208,7 +206,7 @@ public class Repository {
     }
 
     /**
-     * Checkout file with Id and fileName
+     * Checkout file with commitId and fileName
      */
     public void checkoutFile(String commitId, String fileName) {
         if (!checkCommitExists(commitId)) {
@@ -371,7 +369,6 @@ public class Repository {
 
     public void merge(String branchName) {
         Stage stage = readObject(STAGE, Stage.class);
-        Commit branchCommit = getBranchHead(branchName);
         if (!stage.empty()) {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
@@ -384,24 +381,203 @@ public class Repository {
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
         }
+        Commit currentCommit = getHead();
+        Commit branchCommit = getBranchHead(branchName);
         if (checkUntrackedFiles(branchCommit)) {
-            System.out.println("There is an untracked file in the way;" +
-                    " delete it, or add and commit it first.");
+            System.out.println("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
             System.exit(0);
         }
 
+        Commit splitPointCommit = getSplitPointCommit(currentCommit, branchCommit);
+
+        if (splitPointCommit.getId().equals(branchCommit.getId())) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            System.exit(0);
+        }
+        if (splitPointCommit.getId().equals(currentCommit.getId())) {
+            checkoutBranch(branchName);
+            System.out.println("Current branch fast-forwarded.");
+            System.exit(0);
+        }
+
+        Map<String, String> currentBlobs = currentCommit.getBlobs();
+        Map<String, String> branchBlobs = branchCommit.getBlobs();
+        Map<String, String> splitPointBlobs = splitPointCommit.getBlobs();
+
+        /**
+         * Only exists in current commit, keep the same.
+         */
+
+        /**
+         * Only exists in given branch commit, checkout and stage it.
+         */
+        for (Map.Entry<String, String> entry : branchBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (!currentBlobs.containsKey(key)
+                    && !splitPointBlobs.containsKey(key)) {
+                stage.addFile(key, value);
+                checkoutHelper(branchCommit, key);
+            }
+        }
+
+        /**
+         * Exist in split point commit,
+         * not modified in given branch commit
+         * and not exists in current commit,
+         * keep the same.
+         */
+        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (!currentBlobs.containsKey(key)
+                    && branchBlobs.containsKey(key)
+                    && branchBlobs.get(key).equals(value)) {
+                branchCommit.removeBlob(key);
+            }
+        }
+
+        /**
+         * Exist in split point commit,
+         * not modified in current commit,
+         * and not exists in given branch commit,
+         * remove and untrack it.
+         */
+        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (!branchBlobs.containsKey(key)
+                    && currentBlobs.containsKey(key)
+                    && currentBlobs.get(key).equals(value)) {
+                restrictedDelete(key);
+                currentCommit.removeBlob(key);
+            }
+        }
+
+        /**
+         * Exist in split point commit,
+         * not modified in given branch commit,
+         * and modified in current commit,
+         * keep the same.
+         */
+
+
+        /**
+         * Exist in split point commit,
+         * not modified in current commit,
+         * and modified in given branch commit,
+         * check out and stage it.
+         */
+        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (branchBlobs.containsKey(key)
+                    && !branchBlobs.get(key).equals(value)
+                    && currentBlobs.containsKey(key)
+                    && currentBlobs.get(key).equals(value)) {
+                stage.addFile(key, value);
+                checkoutHelper(branchCommit, key);
+            }
+        }
+
+        /**
+         * Exist in split point commit,
+         * modified in current commit,
+         * and modified in given branch commit in the same way,
+         * keep the same.
+         * If it is deleted in both branches and exists in cwd,
+         * it is not tracked nor staged.
+         */
+
+        boolean conflictExists = false;
+
+        /**
+         * Exist in split point commit,
+         * modified in current commit,
+         * and modified in given branch commit in different ways,
+         * conflict.
+         */
+        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            String currentBlobId = currentBlobs.get(key);
+            String branchBlobId = branchBlobs.get(key);
+            if (!value.equals(currentBlobId)
+                    && !value.equals(branchBlobId)
+                    && !currentBlobId.equals(branchBlobId)) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, key);
+            }
+        }
+
+        /**
+         * Exist in split point commit,
+         * modified in one commit,
+         * and deleted in another commit,
+         * conflict.
+         */
+        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (!branchBlobs.containsKey(key)
+                    && !currentBlobs.get(key).equals(value)) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, key);
+            }
+            else if (!currentBlobs.containsKey(key)
+                    && !branchBlobs.get(key).equals(value)) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, key);
+            }
+        }
+
+        /**
+         * Not exist in split point commit,
+         * modified in current commit,
+         * and modified in given branch commit in different ways,
+         * conflict.
+         */
+        for (Map.Entry<String, String> entry : currentBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (!splitPointBlobs.containsKey(key)
+                    && !branchBlobs.get(key).equals(value)) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, key);
+            }
+        }
+
+        for (Map.Entry<String, String> entry : branchBlobs.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (!splitPointBlobs.containsKey(key)
+                    && !currentBlobs.get(key).equals(value)) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, key);
+            }
+        }
+
+        if (stage.empty()) {
+            System.out.println("No changes added to the commit.");
+            System.exit(0);
+        }
+        if (conflictExists) {
+            System.out.println("Encountered a merge conflict.");
+        }
+        String currentBranchName = readObject(HEAD, String.class);
+        String message = "Merged " + branchName + " into " + currentBranchName + ".";
+        ArrayList<Commit> parents = new ArrayList<>();
+        parents.add(currentCommit);
+        parents.add(branchCommit);
+        Commit commit = new Commit(message, parents, stage);
+        writeCommitToFile(commit);
+        writeCommitToBranch(commit);
+
+        moveStagingToBlob();
+        emptyStagingArea();
     }
 
-    /**
-     * Check if the commit with the given id exists.
-     */
-    public boolean checkCommitExists(String commitId) {
-        File commitFile = join(COMMITS_DIR, commitId);
-        if (commitFile.exists()) {
-            return true;
-        }
-        return false;
-    }
 
     /**
      * Get the commit with the given commit id.
@@ -412,7 +588,7 @@ public class Repository {
     }
 
     /**
-     * Get the head of current branch.
+     * Get the head commit of current branch.
      */
     public Commit getHead() {
         String branchName = readObject(HEAD, String.class);
@@ -420,12 +596,54 @@ public class Repository {
     }
 
     /**
-     * Get the head of branch with the given branch name
+     * Get the head commit of branch with the given branch name
      */
     public Commit getBranchHead(String branchName) {
         File branchHeadFile = join(HEADS_DIR, branchName);
         Commit branchHead = readObject(branchHeadFile, Commit.class);
         return branchHead;
+    }
+
+    /**
+     * Get the split point commit of two commits.
+     */
+    public Commit getSplitPointCommit(Commit a, Commit b) {
+        Commit p = a;
+        Commit q = b;
+        Set<String> vis = new HashSet<>();
+        Commit res = null;
+
+        Queue<String> visQueue = new LinkedList<>();
+        visQueue.add(p.getId());
+        vis.add(p.getId());
+        while (!visQueue.isEmpty()) {
+            String temp = visQueue.poll();
+            vis.add(temp);
+            Commit tempCommit = getCommit(temp);
+            if (tempCommit.getParents().isEmpty()) {
+                break;
+            }
+            for (String parentId : tempCommit.getParents()) {
+                Commit parentCommit = getCommit(parentId);
+                visQueue.add(parentCommit.getId());
+            }
+        }
+
+        Queue<String> searchQueue = new LinkedList<>();
+        searchQueue.add(q.getId());
+        while (!searchQueue.isEmpty()) {
+            String temp = searchQueue.poll();
+            Commit tempCommit = getCommit(temp);
+            if (vis.contains(temp)) {
+                return getCommit(temp);
+            }
+            for (String parentId : tempCommit.getParents()) {
+                Commit parentCommit = getCommit(parentId);
+                searchQueue.add(parentCommit.getId());
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -467,8 +685,8 @@ public class Repository {
         Map<String, String> branchCommitMap = c.getBlobs();
 
         if (checkUntrackedFiles(c)) {
-            System.out.println("There is an untracked file in the way;" +
-                    " delete it, or add and commit it first.");
+            System.out.println("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
             System.exit(0);
         }
 
@@ -488,15 +706,75 @@ public class Repository {
         }
     }
 
+    /**
+     *
+     */
+    public void conflictHelper(Commit currentCommit, Commit branchCommit, String fileName) {
+        Map<String, String> currentCommitBlobs = currentCommit.getBlobs();
+        Map<String, String> branchCommitBlobs = branchCommit.getBlobs();
+        File cwdFile = join(CWD, fileName);
+        boolean inCurrentBlobs = currentCommitBlobs.containsKey(fileName);
+        boolean inBranchBlobs = branchCommitBlobs.containsKey(fileName);
+        String currentBlobContent = "";
+        String branchBlobContent = "";
+        if(inCurrentBlobs) {
+            checkoutHelper(currentCommit, fileName);
+            String currentBlobId = currentCommitBlobs.get(fileName);
+            File currentBlobFile = join(BLOBS_DIR, currentBlobId);
+            Blob currentBlob = readObject(currentBlobFile, Blob.class);
+            byte[] currentBlobSerializedContent = currentBlob.getContent();
+            writeContents(cwdFile, currentBlobSerializedContent);
+            currentBlobContent = readObject(cwdFile, String.class);
+        }
+        if(inBranchBlobs) {
+            checkoutHelper(branchCommit, fileName);
+            String branchBlobId = branchCommitBlobs.get(fileName);
+            File branchBlobFile = join(BLOBS_DIR, branchBlobId);
+            Blob branchBlob = readObject(branchBlobFile, Blob.class);
+            byte[] branchBlobSerializedContent = branchBlob.getContent();
+            writeContents(cwdFile, branchBlobSerializedContent);
+            branchBlobContent = readObject(cwdFile, String.class);
+        }
+        String conflictContent = "<<<<<<< HEAD\n"
+                                + currentBlobContent
+                                + "\n=======\n"
+                                + branchBlobContent
+                                + "\n>>>>>>>";
+        writeContents(cwdFile, conflictContent);
+        Blob conflictBlob = new Blob(cwdFile);
+        currentCommit.addBlob(conflictBlob);
+    }
+
     public void printLog(Commit commit) {
         String uid = commit.getId();
         String timestamp = commit.getFormattedTimestamp();
         String message = commit.getMessage();
         System.out.println("===");
         System.out.println("commit " + uid);
+        if (commit.getParents().size() == 2) {
+            String firstParent = commit.getParents().get(0);
+            String secondParent = commit.getParents().get(1);
+            String firstParentId = firstParent.substring(0, 7);
+            String secondParentId = secondParent.substring(0, 7);
+            System.out.println("Merge: "
+                    + firstParentId
+                    + " "
+                    + secondParentId);
+        }
         System.out.println("Date: " + timestamp);
         System.out.println(message);
         System.out.println();
+    }
+
+    /**
+     * Check if the commit with the given id exists.
+     */
+    public boolean checkCommitExists(String commitId) {
+        File commitFile = join(COMMITS_DIR, commitId);
+        if (commitFile.exists()) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -517,6 +795,26 @@ public class Repository {
         String currentBranchName = readObject(HEAD, String.class);
         if (currentBranchName.equals(branchName)) {
             return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check If a working file is untracked in the
+     * current branch and would be overwritten
+     * by the checkout.
+     */
+    public boolean checkUntrackedFiles(Commit commit) {
+        Commit currentHeadCommit = getHead();
+        Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
+        Map<String, String> branchCommitMap = commit.getBlobs();
+
+        List<String> cwdFileNames = plainFilenamesIn(CWD);
+        for (String cwdFileName : cwdFileNames) {
+            if (!currentCommitMap.containsKey(cwdFileName)
+                    && branchCommitMap.containsKey(cwdFileName)) {
+                return true;
+            }
         }
         return false;
     }
@@ -562,23 +860,5 @@ public class Repository {
         writeObject(STAGE, new Stage());
     }
 
-    /** Check If a working file is untracked in the
-     *  current branch and would be overwritten
-     *  by the checkout.
-     */
-    public boolean checkUntrackedFiles(Commit commit) {
-        Commit currentHeadCommit = getHead();
-        Map<String, String> currentCommitMap = currentHeadCommit.getBlobs();
-        Map<String, String> branchCommitMap = commit.getBlobs();
-
-        List<String> cwdFileNames = plainFilenamesIn(CWD);
-        for (String cwdFileName : cwdFileNames) {
-            if (!currentCommitMap.containsKey(cwdFileName) &&
-                    branchCommitMap.containsKey(cwdFileName)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 }

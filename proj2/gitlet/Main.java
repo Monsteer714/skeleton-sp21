@@ -78,6 +78,7 @@ public class Main {
                 break;
             case "merge":
                 repo.merge(args[1]);
+                break;
             default:
                 System.out.println("No command with that name exists.");
         }
