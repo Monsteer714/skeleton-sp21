@@ -401,180 +401,8 @@ public class Repository {
             System.exit(0);
         }
 
-        Map<String, String> currentBlobs = currentCommit.getBlobs();
-        Map<String, String> branchBlobs = branchCommit.getBlobs();
-        Map<String, String> splitPointBlobs = splitPointCommit.getBlobs();
+        mergeHelper(branchName, currentCommit, branchCommit, splitPointCommit);
 
-        boolean conflictExists = false;
-
-        /**
-         * Only exists in current commit, keep the same.
-         */
-
-        /**
-         * Only exists in given branch commit, checkout and stage it.
-         */
-        for (Map.Entry<String, String> entry : branchBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!currentBlobs.containsKey(key)
-                    && !splitPointBlobs.containsKey(key)) {
-                checkoutHelper(branchCommit, key);
-                stage.addFile(key, value);
-            }
-        }
-
-        /**
-         * Exist in split point commit,
-         * modified in current commit,
-         * and modified in given branch commit in different ways,
-         * conflict.
-         */
-
-        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!branchBlobs.containsKey(key)
-                    && !currentBlobs.containsKey(key)) {
-                continue;
-            }
-            String currentBlobId = currentBlobs.get(key);
-            String branchBlobId = branchBlobs.get(key);
-            if (!value.equals(currentBlobId)
-                    && !value.equals(branchBlobId)
-                    && !currentBlobId.equals(branchBlobId)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
-
-        /**
-         * Exist in split point commit,
-         * not modified in given branch commit
-         * and not exists in current commit,
-         * keep the same.
-         */
-
-        /**
-         * Exist in split point commit,
-         * not modified in current commit,
-         * and not exists in given branch commit,
-         * remove and untrack it.
-         */
-        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!branchBlobs.containsKey(key)
-                    && currentBlobs.containsKey(key)
-                    && currentBlobs.get(key).equals(value)) {
-                stage.removeFile(key);
-                restrictedDelete(key);
-            }
-        }
-
-        /**
-         * Exist in split point commit,
-         * not modified in given branch commit,
-         * and modified in current commit,
-         * keep the same.
-         */
-
-        /**
-         * Exist in split point commit,
-         * not modified in current commit,
-         * and modified in given branch commit,
-         * check out and stage it.
-         */
-        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (branchBlobs.containsKey(key)
-                    && !branchBlobs.get(key).equals(value)
-                    && currentBlobs.containsKey(key)
-                    && currentBlobs.get(key).equals(value)) {
-                stage.addFile(key, value);
-                checkoutHelper(branchCommit, key);
-            }
-        }
-
-        /**
-         * Exist in split point commit,
-         * modified in current commit,
-         * and modified in given branch commit in the same way,
-         * keep the same.
-         * If it is deleted in both branches and exists in cwd,
-         * it is not tracked nor staged.
-         */
-
-        /**
-         * Exist in split point commit,
-         * modified in one commit,
-         * and deleted in another commit,
-         * conflict.
-         */
-        for (Map.Entry<String, String> entry : splitPointBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!branchBlobs.containsKey(key)
-                    && currentBlobs.containsKey(key)
-                    && !currentBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            } else if (!currentBlobs.containsKey(key)
-                    && branchBlobs.containsKey(key)
-                    && !branchBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
-
-        /**
-         * Not exist in split point commit,
-         * modified in current commit,
-         * and modified in given branch commit in different ways,
-         * conflict.
-         */
-        for (Map.Entry<String, String> entry : currentBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!splitPointBlobs.containsKey(key)
-                    && branchBlobs.containsKey(key)
-                    && !branchBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
-
-        for (Map.Entry<String, String> entry : branchBlobs.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!splitPointBlobs.containsKey(key)
-                    && currentBlobs.containsKey(key)
-                    && !currentBlobs.get(key).equals(value)) {
-                conflictExists = true;
-                conflictHelper(currentCommit, branchCommit, key);
-            }
-        }
-
-        if (stage.empty()) {
-            System.out.println("No changes added to the commit.");
-            System.exit(0);
-        }
-        if (conflictExists) {
-            System.out.println("Encountered a merge conflict.");
-        }
-        
-        String currentBranchName = readObject(HEAD, String.class);
-        String message = "Merged " + branchName + " into " + currentBranchName + ".";
-        ArrayList<Commit> parents = new ArrayList<>();
-        parents.add(currentCommit);
-        parents.add(branchCommit);
-        Commit commit = new Commit(message, parents, stage);
-        writeCommitToFile(commit);
-        writeCommitToBranch(commit);
-
-        moveStagingToBlob();
-        emptyStagingArea();
     }
 
 
@@ -645,6 +473,27 @@ public class Repository {
         return res;
     }
 
+    public List<String> getAllFileNames(Commit a, Commit b, Commit c) {
+        List<String> fileNames = new ArrayList<>();
+        Map<String, String> aBlobs = a.getBlobs();
+        Map<String, String> bBlobs = b.getBlobs();
+        Map<String, String> cBlobs = c.getBlobs();
+        Set<String> set = new HashSet<>();
+        for (String fileName : aBlobs.keySet()) {
+            set.add(fileName);
+        }
+        for (String fileName : bBlobs.keySet()) {
+            set.add(fileName);
+        }
+        for (String fileName : cBlobs.keySet()) {
+            set.add(fileName);
+        }
+        for (String fileName : set) {
+            fileNames.add(fileName);
+        }
+        return fileNames;
+    }
+
     /**
      * Write commit to the system.
      */
@@ -664,7 +513,7 @@ public class Repository {
     }
 
     public void checkoutHelper(Commit head, String fileName) {
-        String blobId = head.getBlob(fileName);
+        String blobId = head.getBlobId(fileName);
         if (blobId == null) {
             System.out.println("File does not exist in that commit.");
             System.exit(0);
@@ -705,6 +554,158 @@ public class Repository {
         }
     }
 
+    public void mergeHelper(String branchName, Commit currentCommit,
+                            Commit branchCommit, Commit splitPointCommit) {
+        List<String> fileNames = getAllFileNames(currentCommit, branchCommit, splitPointCommit);
+        Stage stage = readObject(STAGE, Stage.class);
+
+        boolean conflictExists = false;
+
+        for (String fileName : fileNames) {
+            boolean inCurrentCommit = currentCommit.checkBlobExists(fileName);
+            boolean inBranchCommit = branchCommit.checkBlobExists(fileName);
+            boolean inSplitPointCommit = splitPointCommit.checkBlobExists(fileName);
+            String currentBlobId = currentCommit.getBlobId(fileName);
+            String branchBlobId = branchCommit.getBlobId(fileName);
+            String splitPointBlobId = splitPointCommit.getBlobId(fileName);
+
+            /**
+             * Only exists in given branch commit.
+             */
+            if (!inSplitPointCommit
+                    && !inCurrentCommit
+                    && inBranchCommit) {
+                checkoutHelper(branchCommit, fileName);
+                stage.addFile(fileName,branchBlobId);
+                continue;
+            }
+
+            /**
+             * Only exists in current commit.
+             */
+            if (!inSplitPointCommit
+                    && inCurrentCommit
+                    && !inBranchCommit) {
+                continue;
+            }
+
+            if (inSplitPointCommit
+                    && inCurrentCommit
+                    && splitPointBlobId.equals(currentBlobId)
+                    && !inBranchCommit) {
+                restrictedDelete(fileName);
+                stage.removeFile(fileName);
+                continue;
+            }
+
+            if (inSplitPointCommit
+                    && inBranchCommit
+                    && splitPointBlobId.equals(branchBlobId)
+                    && !inCurrentCommit) {
+                stage.removeFile(fileName);
+                continue;
+            }
+
+            if (inSplitPointCommit
+                    && inCurrentCommit
+                    && inBranchCommit
+                    && splitPointBlobId.equals(currentBlobId)
+                    && !splitPointBlobId.equals(branchBlobId)) {
+                checkoutHelper(branchCommit, fileName);
+                stage.addFile(fileName,branchBlobId);
+                continue;
+            }
+
+            if (inSplitPointCommit
+                    && inCurrentCommit
+                    && inBranchCommit
+                    && !splitPointBlobId.equals(currentBlobId)
+                    && splitPointBlobId.equals(branchBlobId)) {
+                continue;
+            }
+
+            if (!inCurrentCommit
+                    && !inBranchCommit) {
+                continue;
+            }
+
+            if (inCurrentCommit
+                    && inBranchCommit
+                    && currentBlobId.equals(branchBlobId)) {
+                continue;
+            }
+            /**
+             * Exist in split point commit,
+             * modified in current commit,
+             * and modified in given branch commit in different ways,
+             * conflict.
+             */
+            if (inSplitPointCommit
+                    && inCurrentCommit
+                    && inBranchCommit
+                    && !splitPointBlobId.equals(currentBlobId)
+                    && !splitPointBlobId.equals(branchBlobId)
+                    && !currentBlobId.equals(branchBlobId)) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, fileName);
+                continue;
+            }
+
+            /**
+             * Exist in split point commit,
+             * modified in one commit,
+             * and deleted in another commit,
+             * conflict.
+             */
+            if (inSplitPointCommit
+                    && ((inCurrentCommit
+                    && !currentBlobId.equals(splitPointBlobId)
+                    && !inBranchCommit)
+                    || (inBranchCommit
+                    && !branchBlobId.equals(splitPointBlobId)
+                    && !inCurrentCommit))) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, fileName);
+                continue;
+            }
+
+            /**
+             * Not exist in split point commit,
+             * modified in current commit,
+             * and modified in given branch commit in different ways,
+             * conflict.
+             */
+            if (!inSplitPointCommit
+                    && inCurrentCommit
+                    && inBranchCommit
+                    && !currentBlobId.equals(branchBlobId)) {
+                conflictExists = true;
+                conflictHelper(currentCommit, branchCommit, fileName);
+                continue;
+            }
+        }
+
+        if (stage.empty()) {
+            System.out.println("No changes added to the commit.");
+            System.exit(0);
+        }
+        if (conflictExists) {
+            System.out.println("Encountered a merge conflict.");
+        }
+
+        String currentBranchName = readObject(HEAD, String.class);
+        String message = "Merged " + branchName + " into " + currentBranchName + ".";
+        ArrayList<Commit> parents = new ArrayList<>();
+        parents.add(currentCommit);
+        parents.add(branchCommit);
+        Commit commit = new Commit(message, parents, stage);
+        writeCommitToFile(commit);
+        writeCommitToBranch(commit);
+
+        moveStagingToBlob();
+        emptyStagingArea();
+    }
+
     /**
      *
      */
@@ -736,9 +737,9 @@ public class Repository {
         }
         String conflictContent = "<<<<<<< HEAD\n"
                 + currentBlobContent
-                + "\n=======\n"
+                + "=======\n"
                 + branchBlobContent
-                + "\n>>>>>>>";
+                + ">>>>>>>";
         writeContents(cwdFile, conflictContent);
         Blob conflictBlob = new Blob(cwdFile);
         currentCommit.addBlob(conflictBlob);

@@ -91,8 +91,12 @@ public class Commit implements Serializable {
         return blobs;
     }
 
-    public String getBlob(String fileName) {
+    public String getBlobId(String fileName) {
         return blobs.get(fileName);
+    }
+
+    public boolean checkBlobExists(String fileName) {
+        return  blobs.containsKey(fileName);
     }
 
     public void removeBlob(String fileName) {
