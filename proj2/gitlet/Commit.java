@@ -1,11 +1,9 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.Formatter;
 import java.util.*;
 
-import static gitlet.Utils.*;
+import static gitlet.Utils.sha1;
 
 /**
  * Represents a gitlet commit object.
@@ -52,13 +50,11 @@ public class Commit implements Serializable {
             this.parents.add(parent.getId());
         }
         this.blobs = new HashMap<>();
-        Map<String, String> added = stage.getAdded();
-        Set<String> removed = stage.getRemoved();
-       for (int i = parents.size() - 1; i >= 0; i--) {
-            Commit parentHead = parents.get(i);
-            Map<String, String> parentBlobs = parentHead.getBlobs();
-            this.blobs.putAll(parentBlobs);
-        }
+        Map<String, String> added   = stage.getAdded();
+        Set<String>         removed = stage.getRemoved();
+        Commit parentHead = parents.get(0);
+        Map<String, String> parentBlobs = parentHead.getBlobs();
+        this.blobs.putAll(parentBlobs);
         this.blobs.putAll(added);
         for (String entry : removed) {
             this.blobs.remove(entry);
