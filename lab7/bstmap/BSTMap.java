@@ -197,7 +197,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return res;
     }
 
-    public int getSize(K key) {
+    private int getSize(K key) {
         BSTNode temp = getNode(root, key);
         return size(temp);
     }

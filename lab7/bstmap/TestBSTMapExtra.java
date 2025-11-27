@@ -126,6 +126,5 @@ public class TestBSTMapExtra {
         tree.put('I', 1);
         tree.remove('F');
         assertEquals(7, tree.size());
-        assertEquals(5, tree.getSize('G'));
     }
 }
