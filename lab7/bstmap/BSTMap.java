@@ -1,5 +1,6 @@
 package bstmap;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -107,19 +108,112 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return node;
     }
 
+    public void printInOrder() {
+        printInOrder(root);
+    }
+
+    private void printInOrder(BSTNode node) {
+        if (node == null) {
+            return;
+        }
+        printInOrder(node.left);
+        System.out.print(node.key + " ");
+        printInOrder(node.right);
+    }
+
     @Override
     public Set<K> keySet() {
-        return Set.of();
+        Set<K> keys = new HashSet<>();
+        keySet(root, keys);
+        return keys;
+    }
+
+    private void keySet(BSTNode node, Set<K> keys) {
+        if (node == null) {
+            return;
+        }
+        keys.add(node.key);
+        keySet(node.left, keys);
+        keySet(node.right, keys);
     }
 
     @Override
     public V remove(K key) {
-        return null;
+        V res = get(key);
+        if (res == null) {
+            return res;
+        }
+        root = remove(root, key);
+        return res;
+    }
+
+    private BSTNode remove(BSTNode node, K key) {
+        if (node == null) {
+            return node;
+        }
+        int cmp = key.compareTo(node.key);
+        if (cmp < 0) {
+            node.left = remove(node.left, key);
+            node.size = size(node.left) + size(node.right) + 1;
+        } else if (cmp > 0) {
+            node.right = remove(node.right, key);
+            node.size = size(node.left) + size(node.right) + 1;
+        } else {
+            if (node.left == null
+                    && node.right == null) {
+                return null;
+            } else if (node.left == null) {
+                BSTNode temp = node.right;
+                node = null;
+                return temp;
+            } else if (node.right == null) {
+                BSTNode temp = node.left;
+                node = null;
+                return temp;
+            } else {
+                BSTNode tempLeft = node.left;
+                BSTNode tempRight = node.right;
+                BSTNode cur = node.right;
+                int leftSize = size(node.left);
+                while (cur.left != null) {
+                    cur.size += leftSize;
+                    cur = cur.left;
+                }
+                cur.size += leftSize;
+                cur.left = tempLeft;
+                node = null;
+                return tempRight;
+            }
+        }
+        return node;
     }
 
     @Override
     public V remove(K key, V value) {
-        return null;
+        V res = get(key);
+        if (res == value) {
+            root = remove(root, key);
+        }
+        return res;
+    }
+
+    public int getSize(K key) {
+        BSTNode temp = getNode(root, key);
+        return size(temp);
+    }
+
+    private BSTNode getNode(BSTNode node, K key) {
+        if (node == null) {
+            return null;
+        }
+        int cmp = key.compareTo(node.key);
+        if (cmp < 0) {
+            return getNode(node.left, key);
+        } else if (cmp > 0) {
+            return getNode(node.right, key);
+        } else {
+            return node;
+        }
     }
 
     @Override
